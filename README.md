@@ -51,35 +51,38 @@
 
 | Требование | Технологии | Потребители |
 |------------|------------|-------------|
-| REST API для связи фронтенда и бэкенда | ASP.NET Core Web API / PostgreSQL | Внутренние сервисы, фронтенд |
-| Аутентификация пользователя | C# / PostgreSQL | Все пользователи |
-| Сохранение задач в архив | C# / PostgreSQL | Авторизованные пользователи |
-| Система начисления баллов | C# / PostgreSQL | Авторизованные пользователи |
-| Горизонтальное масштабирование | C# / Docker | Все пользователи |
-| Прикрепление файлов | C# / PostgreSQL | Авторизованные пользователи |
-| Кроссплатформенность | React / PostgreSQL (REST API) | iOS и Android пользователи |
+| REST API для связи фронтенда и бэкенда | **FastAPI / PostgreSQL** | Внутренние сервисы, фронтенд |
+| Аутентификация пользователя | **Python / PostgreSQL** | Все пользователи |
+| Сохранение задач в архив | **Python / PostgreSQL** | Авторизованные пользователи |
+| Система начисления баллов | **Python / PostgreSQL** | Авторизованные пользователи |
+| Горизонтальное масштабирование | **Python / Docker** | Все пользователи |
+| Прикрепление файлов | **Python / PostgreSQL** | Авторизованные пользователи |
+| Кроссплатформенность | **React / Python (REST API)** | iOS и Android пользователи |
 
 ### 6.2 Выбор технологий
 
-#### Бэкенд (C# ASP.NET Core)
-- Производительность (близка к C++)
-- Строгая типизация (меньше ошибок в production)
-- Мощный фреймворк ASP.NET Core
-- Entity Framework (ORM)
+#### Бэкенд (Python + FastAPI)
+- Высокая скорость разработки
+- Автоматическая документация (Swagger/ReDoc)
+- Асинхронность из коробки
+- Встроенная валидация через Pydantic
+- Простота изучения для команды
+- Большое сообщество и библиотеки
 
 
 #### Бэкенд стек
 | Компонент | Технология | Назначение |
 |-----------|------------|------------|
-| Платформа | .NET 8 (LTS) | Базовая платформа |
-| Фреймворк | ASP.NET Core Web API | REST API |
-| ORM | Entity Framework Core | Работа с БД |
-| База данных | PostgreSQL | Хранение данных |
-| Документация | Swagger/OpenAPI | Автодокументация API |
-| Аутентификация | JWT | Токены доступа |
-| Логирование | Serilog | Логирование событий |
-| Валидация | FluentValidation | Валидация данных |
-| Маппинг | AutoMapper | Преобразование объектов |
+| Платформа | **Python 3.11+** | Язык программирования |
+| Фреймворк | **FastAPI** | REST API |
+| ASGI сервер | **Uvicorn** | Запуск приложения |
+| ORM | **SQLAlchemy 2.0** | Работа с БД |
+| Миграции | **Alembic** | Управление схемой БД |
+| База данных | **PostgreSQL** | Хранение данных |
+| Документация | **Swagger/ReDoc** | Автодокументация API (встроено) |
+| Валидация | **Pydantic** | Валидация данных (встроено) |
+| Аутентификация | **python-jose / passlib** | JWT токены |
+| Логирование | **Loguru / structlog** | Логирование событий |
 
 #### Фронтенд стек
 - **JavaScript**
@@ -89,111 +92,46 @@
 ### 7.1 Структура проекта
 ```csh
 TodoApp/
-├── backend/                # ASP.NET Core проект
-│   ├── Controllers/        # API эндпоинты
-│   ├── Models/             # Entity модели
-│   ├── DTOs/               # Data Transfer Objects
-│   ├── Services/           # Бизнес-логика
-│   ├── Repositories/       # Работа с БД
-│   ├── Data/               # DbContext и миграции
-│   ├── Middleware/         # Кастомный middleware
-│   ├── Extensions/         # Методы расширения
-│   └── Program.cs          # Точка входа
+├── backend/ # Python FastAPI проект
+│ ├── app/
+│ │ ├── init.py
+│ │ ├── main.py # Точка входа, FastAPI приложение
+│ │ ├── database.py # Подключение к БД (SQLAlchemy)
+│ │ ├── models.py # SQLAlchemy модели (ORM)
+│ │ ├── schemas.py # Pydantic схемы (DTO)
+│ │ ├── crud.py # Функции работы с БД
+│ │ ├── dependencies.py # Общие зависимости
+│ │ ├── routers/ # Эндпоинты
+│ │ │ ├── init.py
+│ │ │ ├── tasks.py
+│ │ │ ├── users.py
+│ │ │ └── auth.py
+│ │ ├── services/ # Бизнес-логика
+│ │ │ ├── init.py
+│ │ │ └── gamification.py
+│ │ └── core/ # Конфиги, middleware
+│ │ ├── config.py
+│ │ └── security.py
+│ ├── tests/ # Тесты
+│ ├── alembic/ # Миграции
+│ ├── requirements.txt # Зависимости
+│ └── .env # Переменные окружения
 │
-├── frontend/               # React проект
-│   ├── src/
-│   │   ├── components/     # Переиспользуемые компоненты
-│   │   ├── pages/          # Страницы
-│   │   ├── services/       # API вызовы
-│   │   ├── store/          # Redux/Zustand store
-│   │   ├── types/          # TypeScript типы
-│   │   ├── utils/          # Хелперы
-│   │   └── App.tsx
-│   └── public/
+├── frontend/ # React проект
+│ ├── src/
+│ │ ├── components/ # Переиспользуемые компоненты
+│ │ ├── pages/ # Страницы
+│ │ ├── services/ # API вызовы
+│ │ ├── store/ # Redux/Zustand store
+│ │ ├── types/ # TypeScript типы
+│ │ ├── utils/ # Хелперы
+│ │ └── App.tsx
+│ └── public/
 │
-└── docker-compose.yml      # Для локальной разработки
+└── docker-compose.yml # Для локальной разработки
 ```
 
-
-## 8. Модели данных
-
-### 8.1 Модель задачи (Task)
-```csharp
-public class Task
-{
-    public Guid Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public Priority Priority { get; set; } // Low, Medium, High, Critical
-    public DateTime Deadline { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public bool IsCompleted { get; set; }
-    public bool IsArchived { get; set; }
-    public Guid UserId { get; set; }
-    public User User { get; set; }
-    public ICollection<TaskAttachment> Attachments { get; set; }
-}
-```
-
-### 8.2 Модели геймификации
-```csharp
-public class UserProfile
-{
-    public string Name { get; set; }
-    public int Points { get; set; }
-}
-
-public class PointsHistory
-{
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
-    public int Points { get; set; }
-    public string Reason { get; set; } // on_time, early, late_penalty, etc.
-    public DateTime CreatedAt { get; set; }
-    public Guid? TaskId { get; set; }
-}
-```
-
-## 9. API Эндпоинты
-
-| Метод | Эндпоинт | Описание |
-|-------|----------|----------|
-| GET | `/api/tasks` | Получить активные задачи |
-| GET | `/api/tasks/archive` | Получить архив |
-| GET | `/api/tasks/{id}` | Получить задачу по ID |
-| POST | `/api/tasks` | Создать задачу |
-| PUT | `/api/tasks/{id}` | Обновить задачу |
-| DELETE | `/api/tasks/{id}` | Удалить задачу |
-| POST | `/api/tasks/{id}/complete` | Отметить как выполненную |
-
-## 10. Алгоритм расчета баллов
-
-```csharp
-public int CalculatePoints(Task task, DateTime completedAt)
-{
-    int basePoints = task.Priority switch
-    {
-        Priority.Low => 10,
-        Priority.Medium => 25,
-        Priority.High => 50,
-        Priority.Critical => 100,
-        _ => 10
-    };
-    
-    bool isEarly = completedAt < task.Deadline.AddDays(-1);
-    bool isLate = completedAt > task.Deadline;
-    
-    if (isEarly) 
-        return (int)(basePoints * 1.5);      // Бонус за досрочное
-    if (isLate) 
-        return (int)(basePoints * -0.5);      // Штраф за опоздание
-    
-    return basePoints;                          // Вовремя
-}
-```
-
-## 11. План разработки по этапам
+## 8. План разработки по этапам
 
 ### Этап 0: Обучение (1-2 недели)
 - Изучение технологий
@@ -202,9 +140,7 @@ public int CalculatePoints(Task task, DateTime completedAt)
 
 #### Неделя 1: Инициализация проектов
 **Бэкенд:**
-- Создание ASP.NET Core Web API проекта
 - Настройка архитектуры (Controllers, Services, Repositories)
-- Подключение Entity Framework Core
 - Настройка подключения к PostgreSQL
 - Создание моделей User и Task
 - Настройка Swagger
@@ -275,7 +211,7 @@ public int CalculatePoints(Task task, DateTime completedAt)
 - Настройка Docker
 - Деплой на сервер
 
-## 12. Ожидаемые результаты
+## 9. Ожидаемые результаты
 
 1. Готовое кроссплатформенное мобильное приложение (MVP)
 2. Документированная архитектура backend и frontend
@@ -283,7 +219,7 @@ public int CalculatePoints(Task task, DateTime completedAt)
 4. Документация по использованию и технической реализации
 5. Прототипы UX/UI в Figma
 
-## 13. Критерии успеха
+## 10. Критерии успеха
 
 - [ ] Приложение работает на iOS и Android
 - [ ] Все задачи можно создавать, редактировать и удалять
