@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-import schemas
+from app.routers import auth
 
 app = FastAPI(
     title="MY TODO API",
@@ -17,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router)
 
 @app.get("/")
 async def root():
@@ -41,6 +43,12 @@ async def info():
     """ Информация о доступных эндпоинтах API """
     return {
         "endpoints": {
+            "auth": {
+                "register": "POST /auth/register",
+                "login": "POST /auth/login",
+                "users": "GET /auth/users",
+                "check": "GET /auth/check/{username}"
+            },
             "users": {
                 "create": "POST /users",
                 "delete": "DELETE /users/{id}",
