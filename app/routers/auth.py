@@ -32,7 +32,7 @@ async def register(user: schemas.CreateUser):
         if existing_user.username == user.username:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists"
+                detail="Имя пользователя уже существует"
             )
 
     new_user = schemas.GetUserInfo(
@@ -69,7 +69,7 @@ async def login(user: schemas.CreateUser):
 
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
-        detail="User not found"
+        detail="Пользователь не найден"
     )
 
 @router.get("/users")
@@ -80,6 +80,6 @@ async def get_all_users():
 async def check_username(username: str):
     for user in fake_users_db.values():
         if user.username == username:
-            return {"available": False, "message": "Username already taken"}
+            return {"available": False, "message": "Имя пользователя уже занято"}
 
-    return {"available": True, "message": "Username is available"}
+    return {"available": True, "message": "Доступное имя пользователя"}
