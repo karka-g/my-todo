@@ -1,14 +1,13 @@
 import { useRouter } from 'expo-router';
 import { Image, StyleSheet, Text, TouchableOpacity, View, Dimensions } from 'react-native';
 
-const { width } = Dimensions.get('window'); // Получаем ширину экрана пользователя
+const { width } = Dimensions.get('window'); 
 
 export default function Main() {
   const router = useRouter();
 
   return (
     <View style={styles.container}>
-      {/* Группируем тексты для легкой центровки */}
       <View style={styles.textGroup}>
         <Text style={styles.title}>Добро пожаловать в MY-TODO</Text>
         <Text style={styles.title2}>Ставь задачи и получай баллы</Text>
@@ -37,11 +36,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFD7E4',
-    alignItems: 'center', // Центрирует всё содержимое по горизонтали
+    alignItems: 'center', 
   },
   textGroup: {
     marginTop: 160,
-    alignItems: 'center', // Центрирует тексты друг относительно друга
+    alignItems: 'center', 
   },
   title: {
     fontSize: 20,
@@ -59,9 +58,9 @@ const styles = StyleSheet.create({
     height: 207,
     position: 'absolute',
     top: 362,
-    alignSelf: 'center', // Сама картинка встанет по центру экрана
+    alignSelf: 'center', 
   },
-  // Эти элементы оставляем с position: absolute, так как они "летают" вокруг
+  
   cup: { width: 18, height: 22, position: 'absolute', left: width * 0.7, top: 540 },
   watch: { width: 40, height: 50, position: 'absolute', left: width * 0.3, top: 260 },
   vase: { width: 36, height: 52, position: 'absolute', left: width * 0.2, top: 491 },
@@ -72,10 +71,10 @@ const styles = StyleSheet.create({
   
   button: {
     backgroundColor: '#FFBDD2',
-    width: width * 0.85, // Кнопка будет занимать 85% ширины любого экрана
+    width: width * 0.85, 
     height: 52,
     position: 'absolute',
-    bottom: 80, // Привязываем к низу экрана, а не к верху
+    bottom: 80, 
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
