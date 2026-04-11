@@ -1,15 +1,16 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.content}>
-        
-        {/* Верхнее окно профиля */}
         <View style={styles.profileCard}>
           <View style={styles.avatarWrapper}>
             <View style={styles.avatarCircle}>
@@ -19,16 +20,13 @@ export default function ProfileScreen() {
               <Ionicons name="add" size={20} color="#fff" />
             </TouchableOpacity>
           </View>
-
           <View style={styles.nameContainer}>
             <Ionicons name="pencil-outline" size={20} color="#333" />
             <Text style={styles.userName}>Фамилия Имя</Text>
           </View>
-
           <Text style={styles.pointsText}>85 баллов</Text>
         </View>
 
-        {/* Кнопки действий */}
         <TouchableOpacity style={styles.menuButton}>
           <Text style={styles.menuButtonText}>Архив задач</Text>
         </TouchableOpacity>
@@ -36,25 +34,23 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuButton, { marginTop: 20 }]}>
           <Text style={styles.menuButtonText}>Удалить аккаунт</Text>
         </TouchableOpacity>
-
       </SafeAreaView>
 
-      {/* Нижняя панель навигации */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-          <TouchableOpacity style={styles.navItem}>
+          <View style={styles.navItem}>
              <Ionicons name="home-outline" size={28} color="#C4A1B0" />
-          </TouchableOpacity>
-          
-          <View style={{ width: 60 }} /> {/* Место под плюс */}
-
-          <TouchableOpacity style={styles.navItem}>
+          </View>
+          <View style={{ width: 60 }} />
+          <View style={styles.navItem}>
              <Ionicons name="person" size={28} color="#FF8DA1" />
-          </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Центральный плюс */}
-        <TouchableOpacity style={styles.floatingButton}>
+        <TouchableOpacity 
+          style={styles.floatingButton}
+          onPress={() => router.push('/add-task')}
+        >
           <Ionicons name="add" size={35} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -63,27 +59,17 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    backgroundColor: '#FFD7E3', // Нежно-розовый фон
-  },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 40,
-  },
+  mainContainer: { flex: 1, backgroundColor: '#FFD7E3' },
+  content: { flex: 1, alignItems: 'center', paddingTop: 40 },
   profileCard: {
     width: width * 0.85,
-    backgroundColor: '#FFBDD2', // Цвет окон
+    backgroundColor: '#FFBDD2',
     borderRadius: 45,
     paddingVertical: 45,
     alignItems: 'center',
     marginBottom: 40,
   },
-  avatarWrapper: {
-    position: 'relative',
-    marginBottom: 20,
-  },
+  avatarWrapper: { position: 'relative', marginBottom: 20 },
   avatarCircle: {
     width: 130,
     height: 130,
@@ -105,22 +91,9 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#FFBDD2',
   },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  userName: {
-    fontSize: 24,
-    color: '#333',
-    fontWeight: '500',
-  },
-  pointsText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 8,
-  },
+  nameContainer: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  userName: { fontSize: 24, color: '#333', fontWeight: '500' },
+  pointsText: { fontSize: 22, fontWeight: 'bold', color: '#333', marginTop: 8 },
   menuButton: {
     width: width * 0.85,
     backgroundColor: '#FFBDD2',
@@ -129,11 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  menuButtonText: {
-    fontSize: 20,
-    color: '#333',
-    fontWeight: '500',
-  },
+  menuButtonText: { fontSize: 20, color: '#333', fontWeight: '500' },
   bottomNavContainer: {
     position: 'absolute',
     bottom: 0,
@@ -169,7 +138,5 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 10,
   },
-  navItem: {
-    padding: 10,
-  }
+  navItem: { padding: 10 }
 });
