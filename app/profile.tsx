@@ -1,7 +1,7 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { Dimensions, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -38,9 +38,9 @@ export default function ProfileScreen() {
 
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-          <View style={styles.navItem}>
-             <Ionicons name="home-outline" size={28} color="#C4A1B0" />
-          </View>
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/main')}>
+        <Ionicons name="home-outline" size={28} color="#C4A1B0" />
+          </TouchableOpacity>
           <View style={{ width: 60 }} />
           <View style={styles.navItem}>
              <Ionicons name="person" size={28} color="#FF8DA1" />
