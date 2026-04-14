@@ -6,9 +6,6 @@ from typing import Optional
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
-
-
-
 class Base(DeclarativeBase):
     pass
 
@@ -21,6 +18,9 @@ class User(Base):
     created_at: Mapped[DateTime] = mapped_column(DateTime)
 
     tasks = relationship("Task", back_populates="user")
+
+    def __repr__(self) -> str:
+        return f"User(id={self.id}, name={self.name}, email={self.points}, created at={self.created_at})"
 
 
 
@@ -39,6 +39,11 @@ class Task(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     user = relationship("User", back_populates="tasks")
+
+    def __repr__(self) -> str:
+        return f"Task(id={self.id}, title={self.title}, description={self.description}, priority={self.priority}, deadline={self.deadline}, is completed={self.is_completed}, is archived={self.is_archived}, created at={self.created_at}, user_id={self.user_id})"
+
+
 
 
 
