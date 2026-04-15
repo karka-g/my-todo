@@ -23,6 +23,8 @@ def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[type[Use
 
 
 def create_user(user: schemas.CreateUser, session) -> User:
+    if not user.username or not user.username.strip():
+        raise ValueError("Имя пользователя не может быть пустым")
     db_user = User(name=user.username)
     session.add(db_user)
     session.commit()
@@ -48,16 +50,19 @@ def update_points(user_id: int, points_to_add: int, session) -> User | None:
     return db_user
 
 
-def delete_user(user_id: int, session) -> User:
+def delete_user(user_id: int, session) -> User | None:
     statement = select(User).where(User.id == user_id)
-    db_object = session.scalars(statement).one()
+    db_object = session.scalars(statement).first()
+    if db_object is None:
+        return None
     session.delete(db_object)
+    session.commit()
     return db_object
 
 
 def get_task(task_id: int, session):
     statement = select(Task).where(Task.id == task_id)
-    db_object = session.scalars(statement).one()
+    db_object = session.scalars(statement).first()
     return db_object
 
 
@@ -136,10 +141,13 @@ def update_deadline(task_id: int, new_deadline: datetime, session):
     return db_task
 
 
-def delete_task(task_id: int, session) -> Task:
+def delete_task(task_id: int, session) -> Task | None:
     statement = select(Task).where(Task.id == task_id)
-    db_object = session.scalars(statement).one()
+    db_object = session.scalars(statement).first()
+    if db_object is None:  # ← эта проверка важна!
+        return None
     session.delete(db_object)
+    session.commit()
     return db_object
 
 
@@ -155,3 +163,15 @@ def archive_completed_tasks(db: Session, user_id: int):
 
     db.commit()
     return len(tasks)
+
+def complete_task(task_id: int, session) -> Task | None:
+    """Отметить задачу как выполненную"""
+    db_task = get_task(task_id, session)
+    if db_task and not db_task.is_completed:
+        db_task.is_completed = True
+        db_task.completed_at = datetime.now()
+        # Задача НЕ автоматически архивируется здесь,
+        # это делает отдельная функция archive_completed_tasks
+        session.commit()
+        session.refresh(db_task)
+    return db_task

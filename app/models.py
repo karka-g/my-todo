@@ -15,12 +15,12 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(67))
     points: Mapped[int] = mapped_column(Integer(), default=0)
-    created_at: Mapped[DateTime] = mapped_column(DateTime)
+    created_at: Mapped[DateTime] = mapped_column(DateTime,default=datetime.now)
 
-    tasks = relationship("Task", back_populates="user")
+    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
-        return f"User(id={self.id}, name={self.name}, email={self.points}, created at={self.created_at})"
+        return f"User(id={self.id}, name={self.name}, points={self.points}, created at={self.created_at})"
 
 
 
@@ -34,7 +34,7 @@ class Task(Base):
     deadline: Mapped[DateTime] = mapped_column(DateTime,nullable=True)
     is_completed: Mapped[bool] = mapped_column(Boolean,default=False)
     is_archived: Mapped[bool] = mapped_column(Boolean,default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime,  default=datetime.now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
     completed_at: Mapped[DateTime] = mapped_column(DateTime, nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
