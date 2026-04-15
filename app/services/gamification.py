@@ -23,7 +23,7 @@ def calculate_points(task: Task) -> Tuple[int, str]:
 
     now = datetime.now()
 
-    if now < task.deadline:
+    if now.date() < task.deadline.date():
         return base, f"Досрочно: {base} баллов"
 
     elif now.date() == task.deadline.date():
