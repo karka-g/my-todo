@@ -1,85 +1,58 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.orm import Session
 from typing import Dict
 
-from app import schemas
+from app import schemas, crud
+from app.database import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Временное хранилище пользователей (позже БД)
-fake_users_db: Dict[int, schemas.GetUserInfo] = {}
-current_id = 1
 
+@router.post("/register", response_model=schemas.GetUserInfo, status_code=status.HTTP_201_CREATED)
+async def register(user: schemas.CreateUser, db: Session = Depends(get_db)):
+    existing_user = crud.get_user_by_name(user.username, db)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Имя пользователя уже существует"
+        )
+    new_user = crud.create_user(user, db)
 
-@router.post(
-    "/register",
-    response_model=schemas.GetUserInfo,
-    status_code=status.HTTP_201_CREATED
-)
-async def register(user: schemas.CreateUser):
-    """
-    Регистрация нового пользователя.
-
-    username: имя пользователя
-
-    Возвращает:
-    1. ID пользователя
-    2. Имя пользователя
-    3. Количество баллов (0 при регистрации)
-    """
-    global current_id
-
-    for existing_user in fake_users_db.values():
-        if existing_user.username == user.username:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Имя пользователя уже существует"
-            )
-
-    new_user = schemas.GetUserInfo(
-        id=current_id,
-        username=user.username,
-        points=0
-    )
-
-    fake_users_db[current_id] = new_user
-    current_id += 1
-
-    return new_user
+    return {
+        "id": new_user.id,
+        "username": new_user.name,
+        "points": new_user.points
+    }
 
 @router.post("/login")
-async def login(user: schemas.CreateUser):
-    """
-    Вход в систему.
+async def login(user: schemas.CreateUser, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_name(user.username, db)
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден"
+        )
 
-    username: имя пользователя
+    return {
+        "access_token": f"token_{db_user.id}",
+        "token_type": "bearer",
+        "user_id": db_user.id,
+        "username": db_user.name
+    }
 
-    Возвращает:
-    1. Токен доступа
-    2. ID пользователя
-    3. Имя пользователя
-    """
-    for user_id, existing_user in fake_users_db.items():
-        if existing_user.username == user.username:
-            return {
-                "access_token": f"token_{user_id}",
-                "token_type": "bearer",
-                "user_id": user_id,
-                "username": existing_user.username
-            }
-
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Пользователь не найден"
-    )
 
 @router.get("/users")
-async def get_all_users():
-    return list(fake_users_db.values())
+async def get_all_users(db: Session = Depends(get_db)):
+    users = crud.get_all_users(db)
+    return [
+        {"id": u.id, "username": u.name, "points": u.points}
+        for u in users
+    ]
+
 
 @router.get("/check/{username}")
-async def check_username(username: str):
-    for user in fake_users_db.values():
-        if user.username == username:
-            return {"available": False, "message": "Имя пользователя уже занято"}
-
+async def check_username(username: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_name(username, db)
+    if user:
+        return {"available": False, "message": "Имя пользователя уже занято"}
     return {"available": True, "message": "Доступное имя пользователя"}

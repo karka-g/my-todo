@@ -2,7 +2,10 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth
+from app.routers import auth, users, tasks
+from app.database import Base, engine
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="MY TODO API",
@@ -24,7 +27,6 @@ app.include_router(tasks.router)
 
 @app.get("/")
 async def root():
-    """ Проверка работы API """
     return {
         "message": "Welcome to MY TODO API",
         "version": "1.0",
@@ -34,15 +36,11 @@ async def root():
 
 @app.get("/healthcheck")
 async def healthcheck():
-    """ Проверка состояния сервера """
-    return {
-        "status": "ok"
-    }
+    return {"status": "ok"}
 
 
 @app.get("/info")
 async def info():
-    """ Информация о доступных эндпоинтах API """
     return {
         "endpoints": {
             "auth": {
@@ -52,17 +50,19 @@ async def info():
                 "check": "GET /auth/check/{username}"
             },
             "users": {
-                "create": "POST /users",
-                "delete": "DELETE /users/{id}",
-                "get": "GET /users/{id}",
-                "update_username": "PUT /users/{id}/username",
+                "get_me": "GET /users/me",
+                "get_user": "GET /users/{user_id}",
+                "update_username": "PUT /users/{user_id}/username",
+                "delete_user": "DELETE /users/{user_id}"
             },
             "tasks": {
                 "create": "POST /tasks",
-                "delete": "DELETE /tasks/{id}",
-                "get": "GET /tasks/{id}",
                 "get_all": "GET /tasks",
-                "update": "PUT /tasks/{id}",
+                "get_task": "GET /tasks/{task_id}",
+                "update": "PUT /tasks/{task_id}",
+                "delete": "DELETE /tasks/{task_id}",
+                "complete": "POST /tasks/{task_id}/complete",
+                "archive": "POST /tasks/archive"
             }
         },
         "documentation": "/docs"
@@ -70,4 +70,4 @@ async def info():
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
