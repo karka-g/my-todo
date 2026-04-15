@@ -1,86 +1,57 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
 
 from app import schemas, crud
 from app.database import get_db
 from app.dependencies import get_current_user
+from app.services import gamification
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
-@router.post("/", response_model=schemas.GetTaskInfo, status_code=201)
+@router.post("/", response_model=schemas.GetTaskInfo)
 async def create_task(
         task: schemas.TaskCreate,
         db: Session = Depends(get_db),
-        token_data: dict = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    user_id = token_data.get("user_id")
-    new_task = crud.create_task(task, user_id, db)
-    return {
-        "id": new_task.id,
-        "title": new_task.title,
-        "description": new_task.description,
-        "priority": new_task.priority,
-        "deadline": new_task.deadline,
-        "is_completed": new_task.is_completed,
-        "created_at": new_task.created_at
-    }
+    return crud.create_task(task, current_user.id, db)
 
 
 @router.get("/", response_model=List[schemas.GetTaskInfo])
 async def get_tasks(
         include_archived: Optional[bool] = False,
         db: Session = Depends(get_db),
-        token_data: dict = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    user_id = token_data.get("user_id")
-    tasks = crud.get_tasks(user_id, db, include_archived)
-
-    return [
-        {
-            "id": t.id,
-            "title": t.title,
-            "description": t.description,
-            "priority": t.priority,
-            "deadline": t.deadline,
-            "is_completed": t.is_completed,
-            "created_at": t.created_at
-        }
-        for t in tasks
-    ]
+    return crud.get_tasks(current_user.id, db, include_archived)
 
 
 @router.get("/{task_id}", response_model=schemas.GetTaskInfo)
 async def get_task(
         task_id: int,
         db: Session = Depends(get_db),
-        token_data: dict = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
     task = crud.get_task(task_id, db)
-    if not task:
+
+    if not task or task.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    return {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "priority": task.priority,
-        "deadline": task.deadline,
-        "is_completed": task.is_completed,
-        "created_at": task.created_at
-    }
+    return task
 
 
 @router.put("/{task_id}", response_model=schemas.GetTaskInfo)
 async def update_task(
         task_id: int,
         task_update: schemas.TaskUpdate,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
     task = crud.get_task(task_id, db)
-    if not task:
+
+    if not task or task.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Task not found")
 
     if task_update.new_title:
@@ -92,60 +63,55 @@ async def update_task(
     if task_update.new_deadline:
         task = crud.update_deadline(task_id, task_update.new_deadline, db)
 
-    return {
-        "id": task.id,
-        "title": task.title,
-        "description": task.description,
-        "priority": task.priority,
-        "deadline": task.deadline,
-        "is_completed": task.is_completed,
-        "created_at": task.created_at
-    }
+    return task
 
 
 @router.delete("/{task_id}")
 async def delete_task(
         task_id: int,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
     task = crud.get_task(task_id, db)
-    if not task:
+
+    if not task or task.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Task not found")
 
     crud.delete_task(task_id, db)
-    return {"message": "Task deleted successfully"}
+    return {"message": "Task deleted"}
 
 
 @router.post("/{task_id}/complete")
 async def complete_task(
         task_id: int,
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        current_user=Depends(get_current_user)
 ):
     task = crud.get_task(task_id, db)
-    if not task:
+
+    if not task or task.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="Task not found")
 
     if task.is_completed:
         raise HTTPException(status_code=400, detail="Task already completed")
 
-    # Отмечаем как выполненную
-    from app import schemas
-    update_data = schemas.TaskUpdate(is_completed=True)
+    task = crud.complete_task(task_id, db)
 
-    # TODO: начислить баллы через gamification
-    points_earned = 10 * task.priority
+    points, reason = gamification.award_points_for_task(
+        db, task, current_user.id
+    )
 
     return {
         "message": "Task completed",
-        "points_earned": points_earned
+        "points": points,
+        "reason": reason
     }
 
 
 @router.post("/archive")
 async def archive_tasks(
         db: Session = Depends(get_db),
-        token_data: dict = Depends(get_current_user)
+        current_user=Depends(get_current_user)
 ):
-    user_id = token_data.get("user_id")
-    archived_count = crud.archive_completed_tasks(db, user_id)
-    return {"message": f"Archived {archived_count} tasks"}
+    count = crud.archive_completed_tasks(db, current_user.id)
+    return {"archived": count}

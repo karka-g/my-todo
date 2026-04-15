@@ -1,3 +1,4 @@
+pydantic-settings
 python-dotenv
 sqlalchemy
 fastapi
