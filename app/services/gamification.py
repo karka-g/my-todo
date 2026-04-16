@@ -22,15 +22,31 @@ def calculate_points(task: Task) -> Tuple[int, str]:
         return base, f"{base} баллов"
 
     now = datetime.now()
+    days_diff = (task.deadline.date() - now.date()).days
 
-    if now.date() < task.deadline.date():
-        return base, f"Досрочно: {base} баллов"
+    # Досрочно (раньше дедлайна)
+    if days_diff > 0:
+        if days_diff >= 3:
+            points = base * 2
+            bonus = "x2"
+        elif days_diff == 2:
+            points = int(base * 1.5)
+            bonus = "x1.5"
+        else:  # 1 день
+            points = base
+            bonus = "x1"
+        return points, f"Досрочно (за {days_diff} дн): {base} × {bonus} = {points} баллов"
 
-    elif now.date() == task.deadline.date():
+    # Вовремя
+    elif days_diff == 0:
         return base, f"Вовремя: {base} баллов"
 
+    # Кринж
     else:
-        return 0, "Просрочено: 0 баллов"
+        days_late = abs(days_diff)
+        penalty = days_late * 5
+        points = max(base - penalty, 0)
+        return points, f"Просрочка на {days_late} дн: {base} - {penalty} = {points} баллов"
 
 
 def award_points_for_task(db: Session, task: Task, user_id: int):

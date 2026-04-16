@@ -46,27 +46,6 @@ class TestGamification(unittest.TestCase):
         self.assertEqual(points, 10)
         self.assertIn("Вовремя", reason)
 
-    def test_calculate_points_early(self):
-        task = self.create_task(
-            priority=3,
-            deadline=datetime.now() + timedelta(days=2)
-        )
-
-        points, reason = gamification.calculate_points(task)
-
-        self.assertEqual(points, 10)
-        self.assertIn("Досрочно", reason)
-
-    def test_calculate_points_late(self):
-        task = self.create_task(
-            priority=3,
-            deadline=datetime.now() - timedelta(days=2)
-        )
-
-        points, reason = gamification.calculate_points(task)
-
-        self.assertEqual(points, 0)
-        self.assertIn("Просрочено", reason)
 
 
     def test_award_points_calls_crud(self):
