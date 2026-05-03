@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from app.models import User, Task
+from app.models import User, Task, Attachment
 from sqlalchemy import select
 from app import schemas
+
+from typing import List, Optional
+from app.schemas import AttachmentCreate
 
 
 def get_user_by_name(name: str, session) -> User | None:
@@ -101,12 +104,15 @@ def get_archived_tasks(user_id: int, session) -> list[Task]:
         Task.is_archived == True
     ).order_by(Task.completed_at.desc()).all()
 
+
 def create_task(task: schemas.TaskCreate, user_id: int, session):
-    db_task = Task(title = task.title, description = task.description, priority = task.priority, deadline = task.deadline, user_id = user_id)
+    db_task = Task(title=task.title, description=task.description, priority=task.priority, deadline=task.deadline,
+                   user_id=user_id)
     session.add(db_task)
     session.commit()
     session.refresh(db_task)
     return db_task
+
 
 def update_title(task_id: int, new_title: str, session):
     db_task = get_task(task_id, session)
@@ -116,6 +122,7 @@ def update_title(task_id: int, new_title: str, session):
         session.refresh(db_task)
     return db_task
 
+
 def update_description(task_id: int, new_description: str, session):
     db_task = get_task(task_id, session)
     if db_task:
@@ -124,6 +131,7 @@ def update_description(task_id: int, new_description: str, session):
         session.refresh(db_task)
     return db_task
 
+
 def update_priority(task_id: int, new_priority: int, session):
     db_task = get_task(task_id, session)
     if db_task:
@@ -131,6 +139,7 @@ def update_priority(task_id: int, new_priority: int, session):
         session.commit()
         session.refresh(db_task)
     return db_task
+
 
 def update_deadline(task_id: int, new_deadline: datetime, session):
     db_task = get_task(task_id, session)
@@ -144,7 +153,7 @@ def update_deadline(task_id: int, new_deadline: datetime, session):
 def delete_task(task_id: int, session) -> Task | None:
     statement = select(Task).where(Task.id == task_id)
     db_object = session.scalars(statement).first()
-    if db_object is None:  # ← эта проверка важна!
+    if db_object is None:
         return None
     session.delete(db_object)
     session.commit()
@@ -164,6 +173,7 @@ def archive_completed_tasks(db: Session, user_id: int):
     db.commit()
     return len(tasks)
 
+
 def complete_task(task_id: int, session) -> Task | None:
     """Отметить задачу как выполненную"""
     db_task = get_task(task_id, session)
@@ -175,3 +185,50 @@ def complete_task(task_id: int, session) -> Task | None:
         session.commit()
         session.refresh(db_task)
     return db_task
+
+
+def create_attachment(
+        attachment_data: AttachmentCreate,
+        file_path: str,
+        session
+) -> Attachment:
+    db_attachment = Attachment(
+        filename=attachment_data.filename,
+        file_path=file_path,
+        file_size=attachment_data.file_size,
+        file_type=attachment_data.file_type,
+        task_id=attachment_data.task_id
+    )
+    session.add(db_attachment)
+    session.commit()
+    session.refresh(db_attachment)
+    return db_attachment
+
+
+def get_attachments_by_task(task_id: int, session: Session) -> List[type[Attachment]]:
+    return session.query(Attachment).filter(Attachment.task_id == task_id).all()
+
+
+def get_attachment(attachment_id: int, session) -> Optional[Attachment]:
+    statement = select(Attachment).where(Attachment.id == attachment_id)
+    db_object = session.scalars(statement).first()
+    return db_object
+
+
+def delete_attachment(attachment_id: int, session) -> Attachment | None:
+    statement = select(Attachment).where(Attachment.id == attachment_id)
+    db_object = session.scalars(statement).first()
+    if db_object is None:
+        return None
+    session.delete(db_object)
+    session.commit()
+    return db_object
+
+
+def delete_attachments_by_task(task_id: int, session: Session) -> int:
+    attachments = get_attachments_by_task(task_id, session)
+    count = len(attachments)
+    for attachment in attachments:
+        session.delete(attachment)
+    session.commit()
+    return count
