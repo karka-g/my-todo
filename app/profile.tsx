@@ -27,9 +27,11 @@ export default function ProfileScreen() {
           <Text style={styles.pointsText}>85 баллов</Text>
         </View>
 
-        <TouchableOpacity style={styles.menuButton}>
-          <Text style={styles.menuButtonText}>Архив задач</Text>
-        </TouchableOpacity>
+        <TouchableOpacity 
+  style={styles.menuButton}
+onPress={() => router.push('/archive' as any)}>
+  <Text style={styles.menuButtonText}>Архив задач</Text>
+</TouchableOpacity>
 
         <TouchableOpacity style={[styles.menuButton, { marginTop: 20 }]}>
           <Text style={styles.menuButtonText}>Удалить аккаунт</Text>
