@@ -11,6 +11,14 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql://postgres:Qwe123Rty456@localhost:5432/todo_db"
 
+    UPLOAD_DIR: str = "uploads"
+    MAX_FILE_SIZE: int = 5 * 1024 * 1024  # 5 MB
+    ALLOWED_FILE_TYPES: list[str] = [
+        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "application/pdf",
+        "text/plain",
+    ]
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

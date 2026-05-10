@@ -57,3 +57,23 @@ class TaskUpdate(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
+class AttachmentBase(BaseModel):
+    filename: str
+    file_size: int
+    file_type: str
+
+
+class AttachmentCreate(AttachmentBase):
+    task_id: int
+
+
+class AttachmentResponse(AttachmentBase):
+    id: int
+    file_path: str
+    uploaded_at: datetime
+    task_id: int
+
+    class Config:
+        from_attributes = True
