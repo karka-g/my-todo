@@ -63,6 +63,7 @@ class TestTasksRouter(unittest.TestCase):
 
         db.commit()
         db.close()
+
     def test_create_task(self):
         response = self.client.post("/tasks/", json={
             "title": "Task 1",
@@ -108,6 +109,7 @@ class TestTasksRouter(unittest.TestCase):
     def test_get_task_not_found(self):
         response = self.client.get("/tasks/999")
         self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Задача не найдена")
 
     def test_update_task(self):
         create = self.client.post("/tasks/", json={
@@ -138,6 +140,7 @@ class TestTasksRouter(unittest.TestCase):
 
         response = self.client.delete(f"/tasks/{task_id}")
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["message"], "Задача удалена")
 
     def test_complete_task(self):
         create = self.client.post("/tasks/", json={
@@ -154,6 +157,7 @@ class TestTasksRouter(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("points", response.json())
         self.assertIn("reason", response.json())
+        self.assertEqual(response.json()["message"], "Задача выполнена")
 
     def test_archive_tasks(self):
         self.client.post("/tasks/", json={
