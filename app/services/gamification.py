@@ -46,7 +46,7 @@ def calculate_points(task: Task) -> Tuple[int, str]:
         days_late = abs(days_diff)
         penalty = days_late * 5
         points = max(base - penalty, 0)
-        return points, f"Просрочка на {days_late} дн: {base} - {penalty} = {points} баллов"
+        return points, f"Просрочено на {days_late} дн: {base} - {penalty} = {points} баллов"
 
 
 def award_points_for_task(db: Session, task: Task, user_id: int):
