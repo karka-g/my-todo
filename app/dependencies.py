@@ -17,7 +17,7 @@ def get_current_user(
     if not token.startswith("token_"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
+            detail="Неверный формат токена"
         )
 
     try:
@@ -25,7 +25,7 @@ def get_current_user(
     except:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token"
+            detail="Неверный токен"
         )
 
     user = get_user_by_id(user_id, db)
@@ -33,7 +33,7 @@ def get_current_user(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
+            detail="Пользователь не найден"
         )
 
     return user

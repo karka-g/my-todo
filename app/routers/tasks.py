@@ -37,7 +37,7 @@ async def get_task(
     task = crud.get_task(task_id, db)
 
     if not task or task.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Задача не найдена")
 
     return task
 
@@ -52,7 +52,7 @@ async def update_task(
     task = crud.get_task(task_id, db)
 
     if not task or task.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Задача не найдена")
 
     if task_update.new_title:
         task = crud.update_title(task_id, task_update.new_title, db)
@@ -75,10 +75,10 @@ async def delete_task(
     task = crud.get_task(task_id, db)
 
     if not task or task.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Задача не найдена")
 
     crud.delete_task(task_id, db)
-    return {"message": "Task deleted"}
+    return {"message": "Задача удалена"}
 
 
 @router.post("/{task_id}/complete")
@@ -90,10 +90,10 @@ async def complete_task(
     task = crud.get_task(task_id, db)
 
     if not task or task.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Задача не найдена")
 
     if task.is_completed:
-        raise HTTPException(status_code=400, detail="Task already completed")
+        raise HTTPException(status_code=400, detail="Задача уже выполнена")
 
     task = crud.complete_task(task_id, db)
 
@@ -102,7 +102,7 @@ async def complete_task(
     )
 
     return {
-        "message": "Task completed",
+        "message": "Задача выполнена",
         "points": points,
         "reason": reason
     }

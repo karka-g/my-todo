@@ -55,4 +55,4 @@ async def check_username(username: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_name(username, db)
     if user:
         return {"available": False, "message": "Имя пользователя уже занято"}
-    return {"available": True, "message": "Доступное имя пользователя"}
+    return {"available": True, "message": "Имя пользователя доступно"}

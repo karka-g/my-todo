@@ -17,7 +17,7 @@ async def get_current_user_info(
     user_id = token_data.get("user_id")
     user = crud.get_user_by_id(user_id, db)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {
         "id": user.id,
         "username": user.name,
@@ -32,7 +32,7 @@ async def get_user(
 ):
     user = crud.get_user_by_id(user_id, db)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
     return {
         "id": user.id,
         "username": user.name,
@@ -48,7 +48,7 @@ async def update_username(
 ):
     user = crud.get_user_by_id(user_id, db)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     updated_user = crud.update_username(user_id, username_data.new_username, db)
     return {
@@ -65,7 +65,7 @@ async def delete_user(
 ):
     user = crud.get_user_by_id(user_id, db)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Пользователь не найден")
 
     crud.delete_user(user_id, db)
-    return {"message": "User deleted successfully"}
+    return {"message": "Пользователь успешно удален"}

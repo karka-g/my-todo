@@ -41,7 +41,7 @@ def calculate_points(task: Task) -> Tuple[int, str]:
     elif days_diff == 0:
         return base, f"Вовремя: {base} баллов"
 
-    # Кринж
+    # Просрочка
     else:
         days_late = abs(days_diff)
         penalty = days_late * 5

@@ -16,7 +16,6 @@ def test_get_current_user_valid_token():
     user = create_user(CreateUser(username="test_auth"), db)
 
     # Создаём правильный объект HTTPAuthorizationCredentials
-    # (это объект, который приходит от FastAPI)
     credentials = HTTPAuthorizationCredentials(
         scheme="Bearer",
         credentials=f"token_{user.id}"
@@ -46,7 +45,7 @@ def test_get_current_user_invalid_token_format():
         get_current_user(credentials, db)
 
     assert exc_info.value.status_code == 401
-    assert "Invalid token format" in str(exc_info.value.detail)
+    assert "Неверный формат токена" in str(exc_info.value.detail)
 
     db.close()
 
@@ -64,7 +63,7 @@ def test_get_current_user_token_without_id():
         get_current_user(credentials, db)
 
     assert exc_info.value.status_code == 401
-    assert "Invalid token" in str(exc_info.value.detail)
+    assert "Неверный токен" in str(exc_info.value.detail)
 
     db.close()
 
@@ -82,6 +81,6 @@ def test_get_current_user_nonexistent_user():
         get_current_user(credentials, db)
 
     assert exc_info.value.status_code == 401
-    assert "User not found" in str(exc_info.value.detail)
+    assert "Пользователь не найден" in str(exc_info.value.detail)
 
     db.close()
