@@ -14,9 +14,9 @@ class TestMainAPI(unittest.TestCase):
     def test_root_data(self):
         response = self.client.get("/")
         data = response.json()
-        self.assertEqual(data["message"], "Welcome to MY TODO API")
+        self.assertEqual(data["message"], "Добро пожаловать в MY TODO API")
         self.assertEqual(data["version"], "1.0")
-        self.assertEqual(data["status"], "running")
+        self.assertEqual(data["status"], "работает")
 
     def test_healthcheck_status(self):
         response = self.client.get("/healthcheck")

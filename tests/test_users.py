@@ -81,7 +81,7 @@ class TestUsersRouter(unittest.TestCase):
         response = self.client.get("/users/999")
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json()["detail"], "User not found")
+        self.assertEqual(response.json()["detail"], "Пользователь не найден")
 
     def test_update_username(self):
         response = self.client.put("/users/1/username", json={
@@ -100,18 +100,19 @@ class TestUsersRouter(unittest.TestCase):
         })
 
         self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json()["detail"], "Пользователь не найден")
 
     def test_delete_user(self):
         response = self.client.delete("/users/2")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["message"], "User deleted successfully")
+        self.assertEqual(response.json()["message"], "Пользователь успешно удален")
 
     def test_delete_user_not_found(self):
         response = self.client.delete("/users/999")
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json()["detail"], "User not found")
+        self.assertEqual(response.json()["detail"], "Пользователь не найден")
 
 
 if __name__ == "__main__":
