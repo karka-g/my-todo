@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-    Dimensions, SafeAreaView, ScrollView,
-    StyleSheet, Text, TouchableOpacity, View
+  Dimensions, SafeAreaView, ScrollView,
+  StyleSheet, Text, TouchableOpacity, View
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -46,8 +46,7 @@ export default function ArchiveScreen() {
 
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/main')}>
-            <Ionicons name="home-outline" size={28} color="#C4A1B0" />
+<TouchableOpacity testID="home-button" style={styles.navItem} onPress={() => router.push('/main')}>            <Ionicons name="home-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
           <View style={{ width: 60 }} />
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
