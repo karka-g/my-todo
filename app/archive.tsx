@@ -1,55 +1,181 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-  Dimensions, SafeAreaView, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { archiveTasks, getTasks } from './services/api';
+import { Task } from './services/types';
 
 const { width } = Dimensions.get('window');
 
-const mockDoneTasks = [
-  { id: 1, title: 'Personal Project', points: 15 },
-  { id: 2, title: 'Personal Project', points: 15 },
-  { id: 3, title: 'Personal Project', points: 15 },
-  { id: 4, title: 'Personal Project', points: 15 },
-  { id: 5, title: 'Personal Project', points: 15 },
-];
-
 export default function ArchiveScreen() {
   const router = useRouter();
+  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [archiving, setArchiving] = useState(false);
+
+  // Загружаем только выполненные задачи
+  const loadCompletedTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await getTasks();  // AxiosResponse
+      const allTasks = response.data;     // Task[]
+      // Фильтруем выполненные задачи
+      const completed = allTasks.filter((task: Task) => task.is_completed === true);
+      setCompletedTasks(completed);
+    } catch (error: any) {
+      console.error('Load completed tasks error:', error);
+      if (error.response?.status === 401) {
+        Alert.alert('Ошибка', 'Сессия истекла, войдите снова');
+        router.replace('/login');
+      } else {
+        Alert.alert('Ошибка', 'Не удалось загрузить архив');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Обновляем при каждом открытии экрана
+  useFocusEffect(
+    useCallback(() => {
+      loadCompletedTasks();
+    }, [])
+  );
+
+  // Архивация (удаление всех выполненных задач)
+  const handleArchiveAll = async () => {
+    if (completedTasks.length === 0) {
+      Alert.alert('Архив пуст', 'Нет выполненных задач для архивации');
+      return;
+    }
+
+    Alert.alert(
+      'Архивация',
+      `Вы действительно хотите удалить ${completedTasks.length} выполненных задач?`,
+      [
+        { text: 'Отмена', style: 'cancel' },
+        {
+          text: 'Удалить',
+          style: 'destructive',
+          onPress: async () => {
+            setArchiving(true);
+            try {
+              const result = await archiveTasks();
+              Alert.alert(
+                'Успех', 
+                `Удалено ${result.data.deleted_count} задач`
+              );
+              await loadCompletedTasks(); // Обновляем список
+            } catch (error: any) {
+              console.error('Archive error:', error);
+              Alert.alert('Ошибка', 'Не удалось архивировать задачи');
+            } finally {
+              setArchiving(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Получаем баллы за задачу
+  const getTaskPoints = (task: Task) => {
+    switch (task.priority) {
+      case 3: return 15;
+      case 2: return 10;
+      case 1: return 5;
+      default: return 10;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU');
+  };
 
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Архив задач</Text>
+          {completedTasks.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleArchiveAll} 
+              disabled={archiving}
+              style={styles.archiveButton}
+            >
+              {archiving ? (
+                <ActivityIndicator color="#DC5E60" size="small" />
+              ) : (
+                <Text style={styles.archiveButtonText}>Очистить всё</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <Text style={styles.title}>Архив задач</Text>
-
-        <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 120 }}>
-          {mockDoneTasks.map((task) => (
-            <View key={task.id} style={styles.taskCard}>
-              <View style={styles.pointsBadge}>
-                <Text style={styles.pointsBadgeText}>{task.points}</Text>
-              </View>
-              <View style={styles.taskInfo}>
-                <Text style={styles.taskTitle}>{task.title}</Text>
-                <Text style={styles.taskSubtitle}>Перейти к задаче</Text>
-              </View>
-              <View style={styles.checkCircleDone}>
-                <Ionicons name="checkmark" size={18} color="#FF8DA1" />
-              </View>
+        <ScrollView 
+          contentContainerStyle={{ alignItems: 'center', paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {loading ? (
+            <ActivityIndicator size="large" color="#FF8DA1" style={{ marginTop: 50 }} />
+          ) : completedTasks.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="archive-outline" size={80} color="#C4A1B0" />
+              <Text style={styles.emptyText}>Архив пуст</Text>
+              <Text style={styles.emptySubtext}>
+                Выполненные задачи будут появляться здесь
+              </Text>
             </View>
-          ))}
+          ) : (
+            completedTasks.map((task) => (
+              <TouchableOpacity
+                key={task.id}
+                style={styles.taskCard}
+                onPress={() => router.push(`/task?id=${task.id}`)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.pointsBadge}>
+                  <Text style={styles.pointsBadgeText}>{getTaskPoints(task)}</Text>
+                </View>
+                <View style={styles.taskInfo}>
+                  <Text style={styles.taskTitle}>{task.title}</Text>
+                  <Text style={styles.taskSubtitle}>
+                    Завершена: {task.completed_at ? formatDate(task.completed_at) : formatDate(task.created_at)}
+                  </Text>
+                </View>
+                <View style={styles.checkCircleDone}>
+                  <Ionicons name="checkmark" size={18} color="#FF8DA1" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
-
       </SafeAreaView>
 
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-<TouchableOpacity testID="home-button" style={styles.navItem} onPress={() => router.push('/main')}>            <Ionicons name="home-outline" size={28} color="#C4A1B0" />
+          <TouchableOpacity 
+            style={styles.navItem} 
+            onPress={() => router.push('/main')}
+          >
+            <Ionicons name="home-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
           <View style={{ width: 60 }} />
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
+          <TouchableOpacity 
+            style={styles.navItem} 
+            onPress={() => router.push('/profile')}
+          >
             <Ionicons name="person-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
         </View>
@@ -67,13 +193,30 @@ export default function ArchiveScreen() {
 
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#FFD7E3' },
-  content: { flex: 1, alignItems: 'center' },
+  content: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
-    marginTop: 20,
-    marginBottom: 20,
+  },
+  archiveButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    backgroundColor: '#FFF0F5',
+    borderRadius: 20,
+  },
+  archiveButtonText: {
+    color: '#DC5E60',
+    fontSize: 14,
+    fontWeight: '500',
   },
   taskCard: {
     width: width * 0.9,
@@ -82,12 +225,16 @@ const styles = StyleSheet.create({
     padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
   },
   pointsBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 45,
+    height: 45,
+    borderRadius: 12,
     backgroundColor: '#DC5E60',
     justifyContent: 'center',
     alignItems: 'center',
@@ -96,7 +243,7 @@ const styles = StyleSheet.create({
   pointsBadgeText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   taskInfo: { flex: 1 },
   taskTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
-  taskSubtitle: { fontSize: 13, color: '#A0A0A0', marginTop: 3 },
+  taskSubtitle: { fontSize: 12, color: '#A0A0A0', marginTop: 3 },
   checkCircleDone: {
     width: 30,
     height: 30,
@@ -126,6 +273,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingBottom: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
   },
   floatingButton: {
     position: 'absolute',
@@ -137,6 +288,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
   navItem: { padding: 10 },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#C4A1B0',
+    marginTop: 20,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#C4A1B0',
+    marginTop: 8,
+    textAlign: 'center',
+  },
 });
