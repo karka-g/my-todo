@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions, SafeAreaView, ScrollView,
-    StyleSheet, Text, TouchableOpacity, View
+  Dimensions, SafeAreaView, ScrollView,
+  StyleSheet, Text, TouchableOpacity, View
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
@@ -124,15 +124,15 @@ export default function MainScreen() {
             <Ionicons name="home" size={28} color="#FF8DA1" />
           </TouchableOpacity>
           <View style={{ width: 60 }} />
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
-            <Ionicons name="person-outline" size={28} color="#C4A1B0" />
+<TouchableOpacity testID="profile-button" style={styles.navItem} onPress={() => router.push('/profile')}>            <Ionicons name="person-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={() => router.push('/add-task')}
-        >
+  testID="add-task-button"
+  style={styles.floatingButton}
+  onPress={() => router.push('/add-task')}
+>
           <Ionicons name="add" size={35} color="#fff" />
         </TouchableOpacity>
       </View>
