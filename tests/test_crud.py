@@ -6,8 +6,6 @@ from app import crud
 from app import schemas
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-
-
 def print_separator(title: str):
     """Печатает разделитель с заголовком"""
     print("\n" + "=" * 60)
