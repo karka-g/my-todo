@@ -22,7 +22,7 @@ def get_current_user(
 
     try:
         user_id = int(token.split("_")[1])
-    except:
+    except (IndexError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверный токен"
