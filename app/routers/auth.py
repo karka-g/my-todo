@@ -23,6 +23,7 @@ async def register(user: schemas.CreateUser, db: Session = Depends(get_db)):
         "points": new_user.points
     }
 
+
 @router.post("/login")
 async def login(user: schemas.CreateUser, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_name(user.username, db)
