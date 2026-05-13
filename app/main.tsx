@@ -90,6 +90,7 @@ export default function MainScreen() {
       try {
         await completeTask(task.id);
         await loadTasks();
+        await loadUser();
       } catch (error: any) {
         console.error('Complete task error:', error);
         Alert.alert('Ошибка', 'Не удалось выполнить задачу');
@@ -114,9 +115,11 @@ export default function MainScreen() {
     return dateA.getTime() - dateB.getTime();
   });
 
-  const totalPoints = tasks
-    .filter(t => t.is_completed)
-    .reduce((sum, t) => sum + getTaskPoints(t.priority), 0);
+  // const totalPoints = tasks
+  //   .filter(t => t.is_completed)
+  //   .reduce((sum, t) => sum + getTaskPoints(t.priority), 0);
+  const totalPoints = user?.points || 0;
+
   
   const maxPoints = 100;
   const radius = 30;

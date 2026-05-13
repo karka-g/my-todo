@@ -11,7 +11,9 @@ import {
 } from './types';
 
 // ДЛЯ ANDROID ЭМУЛЯТОРА:
-const API_BASE_URL = 'http://10.0.2.2:8000';
+// const API_BASE_URL = 'http://10.0.2.2:8000';
+const API_BASE_URL = 'http://localhost:8000'; 
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,6 +23,7 @@ const api = axios.create({
 // Добавляем токен к каждому запросу
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('access_token');
+  console.log('Токен в запросе:', token); // ← добавить эту строку
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -80,3 +83,6 @@ export const getTaskAttachments = (taskId: number) =>
 
 export const deleteAttachment = (attachmentId: number) => 
   api.delete<{ message: string }>(`/attachments/${attachmentId}`);
+
+export const getArchivedTasks = (userId: number) => 
+  api.get('/tasks/archive', { params: { user_id: userId } });

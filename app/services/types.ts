@@ -44,6 +44,7 @@ export interface GetTaskInfo {
   deadline: string;
   is_completed: boolean;
   created_at: string;
+  completed_at?: string | null;  // ← добавить эту строку
 }
 
 export interface TaskUpdate {
