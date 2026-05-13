@@ -27,3 +27,4 @@ jobs:
 
       - name: 📱 Build check
         run: npx expo export --non-interactive
+
