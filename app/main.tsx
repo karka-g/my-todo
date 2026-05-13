@@ -212,7 +212,7 @@ export default function MainScreen() {
                     <TouchableOpacity
                       key={task.id}
                       style={styles.taskCard}
-                      onPress={() => router.push(`/task?id=${task.id}`)}
+                      onPress={() => router.push({ pathname: '/task', params: { id: task.id } })}
                       activeOpacity={0.7}
                     >
                       <View style={[styles.pointsBadge, { backgroundColor: getPointsColor(points) }]}>

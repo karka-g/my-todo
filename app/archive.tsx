@@ -142,9 +142,7 @@ export default function ArchiveScreen() {
               <TouchableOpacity
                 key={task.id}
                 style={styles.taskCard}
-                onPress={() => router.push(`/task?id=${task.id}`)}
-                activeOpacity={0.7}
-              >
+onPress={() => router.push({ pathname: '/task', params: { id: task.id } })}              >
                 <View style={styles.pointsBadge}>
                   <Text style={styles.pointsBadgeText}>{getTaskPoints(task)}</Text>
                 </View>
