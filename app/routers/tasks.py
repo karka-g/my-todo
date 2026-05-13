@@ -6,9 +6,19 @@ from app import schemas, crud
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.services import gamification
+from app.models import User
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
+@router.get("/archive", response_model=list[schemas.TaskResponse])
+def get_archived_tasks(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить архивные задачи пользователя"""
+    tasks = crud.get_tasks(user_id, db, include_archived=True)
+    return tasks
 
 @router.post("/", response_model=schemas.GetTaskInfo)
 async def create_task(

@@ -43,6 +43,7 @@ class GetTaskInfo(BaseModel):
     deadline: datetime
     is_completed: bool
     created_at: datetime
+    completed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -74,6 +75,20 @@ class AttachmentResponse(AttachmentBase):
     file_path: str
     uploaded_at: datetime
     task_id: int
+
+    class Config:
+        from_attributes = True
+
+class TaskResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = None
+    priority: int
+    deadline: datetime
+    is_completed: bool
+    is_archived: bool = False
+    created_at: datetime
+    completed_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
