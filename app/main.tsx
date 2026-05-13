@@ -1,21 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
-  Dimensions, SafeAreaView, ScrollView,
-  StyleSheet, Text, TouchableOpacity, View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { completeTask, getMe, getTasks } from './services/api';
+import { GetTaskInfo, GetUserInfo } from './services/types'; // ← ИСПРАВЛЕНО
 
 const { width } = Dimensions.get('window');
 
-const mockTasks = [
-  { id: 1, title: 'Personal Project', points: 15, date: '24.02.2026', done: true },
-  { id: 2, title: 'Personal Project', points: 10, date: '24.02.2026', done: false },
-  { id: 3, title: 'Personal Project', points: 5, date: '24.02.2026', done: false },
-  { id: 4, title: 'Personal Project', points: 15, date: '25.02.2026', done: false },
-  { id: 5, title: 'Personal Project', points: 15, date: '25.02.2026', done: false },
-];
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
+const getTaskPoints = (priority: number) => {
+  switch (priority) {
+    case 3: return 15;
+    case 2: return 10;
+    case 1: return 5;
+    default: return 10;
+  }
+};
 
 const getPointsColor = (points: number) => {
   if (points >= 15) return '#DC5E60';
@@ -25,37 +44,106 @@ const getPointsColor = (points: number) => {
 
 export default function MainScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState<GetTaskInfo[]>([]);  // ← ИСПРАВЛЕНО
+  const [user, setUser] = useState<GetUserInfo | null>(null);  // ← ИСПРАВЛЕНО
+  const [loading, setLoading] = useState(true);
+  const [completingId, setCompletingId] = useState<number | null>(null);
 
-  const toggleTask = (id: number) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+  const loadUser = async () => {
+    try {
+      const response = await getMe();
+      setUser(response.data);
+    } catch (error: any) {
+      console.error('Load user error:', error);
+      if (error.response?.status === 401) {
+        router.replace('/login');
+      }
+    }
   };
 
-  const groupedTasks = tasks.reduce((groups: any, task) => {
-    if (!groups[task.date]) groups[task.date] = [];
-    groups[task.date].push(task);
+  const loadTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await getTasks();
+      setTasks(response.data);
+    } catch (error: any) {
+      console.error('Load tasks error:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить задачи');
+      if (error.response?.status === 401) {
+        router.replace('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUser();
+      loadTasks();
+    }, [])
+  );
+
+  const handleToggleTask = async (task: GetTaskInfo) => {  // ← ИСПРАВЛЕНО
+    if (!task.is_completed) {
+      setCompletingId(task.id);
+      try {
+        await completeTask(task.id);
+        await loadTasks();
+      } catch (error: any) {
+        console.error('Complete task error:', error);
+        Alert.alert('Ошибка', 'Не удалось выполнить задачу');
+      } finally {
+        setCompletingId(null);
+      }
+    } else {
+      Alert.alert('Инфо', 'Задача уже выполнена');
+    }
+  };
+
+  const groupedTasks = tasks.reduce((groups: Record<string, GetTaskInfo[]>, task) => {
+    const date = formatDate(task.deadline);
+    if (!groups[date]) groups[date] = [];
+    groups[date].push(task);
     return groups;
   }, {});
 
-  const totalPoints = tasks.filter(t => t.done).reduce((sum, t) => sum + t.points, 0);
+  const sortedDates = Object.keys(groupedTasks).sort((a, b) => {
+    const dateA = new Date(a.split('.').reverse().join('-'));
+    const dateB = new Date(b.split('.').reverse().join('-'));
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  const totalPoints = tasks
+    .filter(t => t.is_completed)
+    .reduce((sum, t) => sum + getTaskPoints(t.priority), 0);
+  
+  const maxPoints = 100;
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.min(totalPoints, 100) / 100;
+  const progress = Math.min(totalPoints, maxPoints) / maxPoints;
   const strokeDashoffset = circumference * (1 - progress);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FF8DA1" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.mainContainer}>
       <SafeAreaView style={styles.content}>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 120 }}>
 
-          {/* Шапка */}
           <View style={styles.header}>
             <View style={styles.avatarCircle}>
               <Ionicons name="person-outline" size={24} color="#fff" />
             </View>
             <View>
               <Text style={styles.greeting}>Привет!</Text>
-              <Text style={styles.userName}>Иван Иванов</Text>
+              <Text style={styles.userName}>{user?.username || 'Пользователь'}</Text>
             </View>
           </View>
 
@@ -85,54 +173,83 @@ export default function MainScreen() {
             </View>
           </View>
 
-          {/* Список задач по датам */}
-          {Object.keys(groupedTasks).map((date) => (
-            <View key={date} style={styles.dateGroup}>
-              <View style={styles.dateRow}>
-                <Text style={styles.dateText}>{date}</Text>
-                <View style={styles.taskCountBadge}>
-                  <Text style={styles.taskCountText}>{groupedTasks[date].length}</Text>
-                </View>
-              </View>
-
-              {groupedTasks[date].map((task: any) => (
-                <View key={task.id} style={styles.taskCard}>
-                  <View style={[styles.pointsBadge, { backgroundColor: getPointsColor(task.points) }]}>
-                    <Text style={styles.pointsBadgeText}>{task.points}</Text>
-                  </View>
-                  <View style={styles.taskInfo}>
-                    <Text style={styles.taskTitle}>{task.title}</Text>
-                    <Text style={styles.taskSubtitle}>Перейти к задаче</Text>
-                  </View>
-                  <TouchableOpacity
-                    style={[styles.checkCircle, task.done && styles.checkCircleDone]}
-                    onPress={() => toggleTask(task.id)}
-                  >
-                    {task.done && <Ionicons name="checkmark" size={18} color="#FF8DA1" />}
-                  </TouchableOpacity>
-                </View>
-              ))}
+          {sortedDates.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="checkbox-outline" size={80} color="#C4A1B0" />
+              <Text style={styles.emptyText}>Нет задач</Text>
+              <Text style={styles.emptySubtext}>
+                Нажмите на кнопку + чтобы добавить задачу
+              </Text>
             </View>
-          ))}
+          ) : (
+            sortedDates.map((date) => (
+              <View key={date} style={styles.dateGroup}>
+                <View style={styles.dateRow}>
+                  <Text style={styles.dateText}>{date}</Text>
+                  <View style={styles.taskCountBadge}>
+                    <Text style={styles.taskCountText}>{groupedTasks[date].length}</Text>
+                  </View>
+                </View>
+
+                {groupedTasks[date].map((task) => {
+                  const points = getTaskPoints(task.priority);
+                  return (
+                    <TouchableOpacity
+                      key={task.id}
+                      style={styles.taskCard}
+                      onPress={() => router.push({ pathname: '/task', params: { id: task.id } })}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.pointsBadge, { backgroundColor: getPointsColor(points) }]}>
+                        <Text style={styles.pointsBadgeText}>{points}</Text>
+                      </View>
+                      <View style={styles.taskInfo}>
+                        <Text style={[styles.taskTitle, task.is_completed && styles.completedText]}>
+                          {task.title}
+                        </Text>
+                        <Text style={styles.taskSubtitle}>Нажмите для деталей</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={[styles.checkCircle, task.is_completed && styles.checkCircleDone]}
+                        onPress={() => handleToggleTask(task)}
+                        disabled={completingId === task.id}
+                      >
+                        {completingId === task.id ? (
+                          <ActivityIndicator size="small" color="#FF8DA1" />
+                        ) : task.is_completed ? (
+                          <Ionicons name="checkmark" size={18} color="#FF8DA1" />
+                        ) : null}
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ))
+          )}
 
         </ScrollView>
       </SafeAreaView>
 
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
-          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/main')}>
-            <Ionicons name="home" size={28} color="#FF8DA1" />
+          <TouchableOpacity style={styles.navItem} onPress={() => router.push('/archive')}>
+            <Ionicons name="archive-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
           <View style={{ width: 60 }} />
-<TouchableOpacity testID="profile-button" style={styles.navItem} onPress={() => router.push('/profile')}>            <Ionicons name="person-outline" size={28} color="#C4A1B0" />
+          <TouchableOpacity 
+            testID="profile-button" 
+            style={styles.navItem} 
+            onPress={() => router.push('/profile')}
+          >
+            <Ionicons name="person-outline" size={28} color="#C4A1B0" />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-  testID="add-task-button"
-  style={styles.floatingButton}
-  onPress={() => router.push('/add-task')}
->
+          testID="add-task-button"
+          style={styles.floatingButton}
+          onPress={() => router.push('/add-task')}
+        >
           <Ionicons name="add" size={35} color="#fff" />
         </TouchableOpacity>
       </View>
@@ -143,6 +260,7 @@ export default function MainScreen() {
 const styles = StyleSheet.create({
   mainContainer: { flex: 1, backgroundColor: '#FFD7E3' },
   content: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFD7E3' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -219,6 +337,7 @@ const styles = StyleSheet.create({
   pointsBadgeText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   taskInfo: { flex: 1 },
   taskTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
+  completedText: { textDecorationLine: 'line-through', color: '#A0A0A0' },
   taskSubtitle: { fontSize: 13, color: '#A0A0A0', marginTop: 3 },
   checkCircle: {
     width: 30,
@@ -266,4 +385,20 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   navItem: { padding: 10 },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  emptyText: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#C4A1B0',
+    marginTop: 20,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#C4A1B0',
+    marginTop: 8,
+    textAlign: 'center',
+  },
 });

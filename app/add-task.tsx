@@ -3,16 +3,32 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Dimensions,
-    LayoutAnimation, Platform,
-    SafeAreaView,
-    ScrollView,
-    StyleSheet, Text,
-    TextInput, TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  LayoutAnimation,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
+import { createTask } from './services/api';
+import { TaskCreate } from './services/types';
 
 const { width } = Dimensions.get('window');
+
+const getPriorityFromImportance = (importance: string): number => {
+  switch (importance) {
+    case 'Очень важно': return 3;
+    case 'Важно': return 2;
+    case 'Не очень важно': return 1;
+    default: return 2;
+  }
+};
 
 export default function AddTaskScreen() {
   const router = useRouter();
@@ -21,9 +37,9 @@ export default function AddTaskScreen() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const animate = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -51,7 +67,7 @@ export default function AddTaskScreen() {
       setDate(selectedDate);
     }
     if (Platform.OS === 'android') {
-        setShowDatePicker(false);
+      setShowDatePicker(false);
     }
   };
 
@@ -61,6 +77,45 @@ export default function AddTaskScreen() {
       case 'Важно': return '#F0C846';
       case 'Не очень важно': return '#93C46C';
       default: return '#F0C846';
+    }
+  };
+
+  const handleCreateTask = async () => {
+    if (!title.trim()) {
+      Alert.alert('Ошибка', 'Введите название задачи');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const taskData: TaskCreate = {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        priority: getPriorityFromImportance(importance),
+        deadline: date.toISOString(),
+      };
+
+      await createTask(taskData);
+      
+      Alert.alert(
+        'Успех', 
+        'Задача создана!',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (error: any) {
+      console.error('Create task error:', error);
+      
+      let errorMessage = 'Не удалось создать задачу';
+      if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      Alert.alert('Ошибка', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -110,6 +165,7 @@ export default function AddTaskScreen() {
                 placeholderTextColor="#707070" 
                 value={title}
                 onChangeText={setTitle}
+                editable={!loading}
               />
             </View>
           </View>
@@ -124,6 +180,7 @@ export default function AddTaskScreen() {
                 multiline
                 value={description}
                 onChangeText={setDescription}
+                editable={!loading}
               />
             </View>
           </View>
@@ -132,8 +189,9 @@ export default function AddTaskScreen() {
             style={styles.inputCard} 
             onPress={toggleDatePicker}
             activeOpacity={0.7}
+            disabled={loading}
           >
-             <Ionicons name="calendar-outline" size={24} color="#FF8DA1" style={{ marginRight: 15 }} />
+            <Ionicons name="calendar-outline" size={24} color="#FF8DA1" style={{ marginRight: 15 }} />
             <View style={styles.textContainer}>
               <Text style={styles.label}>Дата</Text>
               <Text style={styles.valueText}>{date.toLocaleDateString('ru-RU')}</Text>
@@ -146,21 +204,27 @@ export default function AddTaskScreen() {
               <DateTimePicker
                 value={date}
                 mode="date"
-                display="inline" 
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
                 onChange={onDateChange}
-                accentColor="#FF8DA1" 
+                accentColor="#FF8DA1"
                 locale="ru-RU"
-                textColor="#333"
-                themeVariant="light"
-                minimumDate={new Date()} 
+                minimumDate={new Date()}
               />
             </View>
           )}
 
         </ScrollView>
 
-        <TouchableOpacity style={styles.addButton} onPress={() => router.back()}>
-          <Text style={styles.addButtonText}>Добавить дело</Text>
+        <TouchableOpacity 
+          style={[styles.addButton, loading && styles.disabledButton]} 
+          onPress={handleCreateTask}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={styles.addButtonText}>Добавить дело</Text>
+          )}
         </TouchableOpacity>
 
       </SafeAreaView>
@@ -236,4 +300,5 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   addButtonText: { fontSize: 20, color: '#000', fontWeight: 'bold' },
+  disabledButton: { opacity: 0.6 },
 });
