@@ -1,14 +1,11 @@
-# tests/test_full_crud.py
 import sys
 import os
 from datetime import datetime, timedelta
-
-# Добавляем корень проекта в путь
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app.database import SessionLocal
 from app import crud
 from app import schemas
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 
 def print_separator(title: str):
@@ -134,7 +131,7 @@ def test_full_crud():
         # 4.2 Проверка, что задача действительно удалена
         task_after_delete = crud.get_task(task2.id, db)
         assert task_after_delete is None, "Задача не удалилась!"
-        print(f"✅ 4.2 Проверка: задача больше не существует")
+        print("✅ 4.2 Проверка: задача больше не существует")
 
         # 4.3 Удаление пользователя (каскадно удалит и его задачи)
         deleted_user = crud.delete_user(user.id, db)
@@ -143,7 +140,7 @@ def test_full_crud():
         # 4.4 Проверка, что пользователь действительно удалён
         user_after_delete = crud.get_user_by_id(user.id, db)
         assert user_after_delete is None, "Пользователь не удалился!"
-        print(f"✅ 4.4 Проверка: пользователь больше не существует")
+        print("✅ 4.4 Проверка: пользователь больше не существует")
 
         # ========== 5. ИТОГИ ==========
         print_separator("5. РЕЗУЛЬТАТЫ ТЕСТИРОВАНИЯ")
@@ -176,7 +173,7 @@ def test_edge_cases():
         try:
             user_data = schemas.CreateUser(username="")
             user = crud.create_user(user_data, db)
-            print(f"   ❌ Ошибка: удалось создать с пустым именем")
+            print(f"   ❌ Ошибка: удалось создать {user.id} с пустым именем")
         except Exception as e:
             print(f"   ✅ Ожидаемая ошибка: {type(e).__name__}")
 
@@ -184,25 +181,25 @@ def test_edge_cases():
         print("\n2. Поиск несуществующего пользователя:")
         not_found = crud.get_user_by_name("nonexistent_user", db)
         if not_found is None:
-            print(f"   ✅ Корректно вернул None")
+            print("   ✅ Корректно вернул None")
         else:
-            print(f"   ❌ Должен вернуть None")
+            print("   ❌ Должен вернуть None")
 
         # 3. Обновление несуществующей задачи
         print("\n3. Обновление несуществующей задачи:")
         result = crud.update_title(99999, "Новый заголовок", db)
         if result is None:
-            print(f"   ✅ Корректно вернул None")
+            print("   ✅ Корректно вернул None")
         else:
-            print(f"   ❌ Должен вернуть None")
+            print("   ❌ Должен вернуть None")
 
         # 4. Удаление несуществующего пользователя
         print("\n4. Удаление несуществующего пользователя:")
         result = crud.delete_user(99999, db)
         if result is None:
-            print(f"   ✅ Корректно вернул None")
+            print("   ✅ Корректно вернул None")
         else:
-            print(f"   ❌ Должен вернуть None")
+            print("   ❌ Должен вернуть None")
 
         print("\n✅ Дополнительные тесты пройдены!")
 

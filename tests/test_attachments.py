@@ -1,13 +1,12 @@
 import sys
 import os
 from datetime import datetime, timedelta
-
-# Добавляем корень проекта в путь
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app.database import SessionLocal
 from app import crud
 from app import schemas
+
+# Добавляем корень проекта в путь
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def print_separator(title: str):
@@ -80,7 +79,7 @@ def test_attachments():
         assert found_attachment.file_type == "image/png"
         assert found_attachment.task_id == task.id
         assert found_attachment.file_path == "uploads/tasks/{}/test_image.png".format(task.id)
-        print(f"✅ 2.5 Все поля вложения корректны")
+        print("✅ 2.5 Все поля вложения корректны")
 
         # ========== 3. ТЕСТЫ УДАЛЕНИЯ ==========
         print_separator("3. ТЕСТЫ УДАЛЕНИЯ")
@@ -92,7 +91,7 @@ def test_attachments():
         # 3.2 Проверка, что вложение действительно удалилось
         not_found = crud.get_attachment(attachment2.id, db)
         assert not_found is None
-        print(f"✅ 3.2 Проверка: вложение больше не существует")
+        print("✅ 3.2 Проверка: вложение больше не существует")
 
         # 3.3 Удаление всех вложений задачи
         deleted_count = crud.delete_attachments_by_task(task.id, db)
@@ -101,7 +100,7 @@ def test_attachments():
         # 3.4 Проверка, что вложений больше нет
         remaining = crud.get_attachments_by_task(task.id, db)
         assert len(remaining) == 0
-        print(f"✅ 3.4 Проверка: у задачи больше нет вложений")
+        print("✅ 3.4 Проверка: у задачи больше нет вложений")
 
         # ========== 4. ГРАНИЧНЫЕ СЛУЧАИ ==========
         print_separator("4. ГРАНИЧНЫЕ СЛУЧАИ")
@@ -109,17 +108,17 @@ def test_attachments():
         # 4.1 Удаление несуществующего вложения
         result = crud.delete_attachment(99999, db)
         assert result is None
-        print(f"✅ 4.1 Удаление несуществующего вложения вернуло None")
+        print("✅ 4.1 Удаление несуществующего вложения вернуло None")
 
         # 4.2 Получение несуществующего вложения
         not_existing = crud.get_attachment(99999, db)
         assert not_existing is None
-        print(f"✅ 4.2 Получение несуществующего вложения вернуло None")
+        print("✅ 4.2 Получение несуществующего вложения вернуло None")
 
         # 4.3 Вложения для несуществующей задачи
         attachments_empty = crud.get_attachments_by_task(99999, db)
         assert len(attachments_empty) == 0
-        print(f"✅ 4.3 Запрос вложений для несуществующей задачи вернул пустой список")
+        print("✅ 4.3 Запрос вложений для несуществующей задачи вернул пустой список")
 
         # ========== 5. ОЧИСТКА ==========
         print_separator("5. ОЧИСТКА ТЕСТОВЫХ ДАННЫХ")
@@ -203,7 +202,7 @@ def test_create_attachments_without_task():
 
         try:
             attachment = crud.create_attachment(attachment_data, "uploads/orphan.txt", db)
-            print("❌ ОШИБКА: Удалось создать вложение без существующей задачи!")
+            print(f"❌ ОШИБКА: Удалось создать вложение {attachment.filename} без существующей задачи!")
         except Exception as e:
             print(f"✅ Ожидаемая ошибка: {type(e).__name__}")
 

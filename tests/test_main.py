@@ -2,6 +2,7 @@ import unittest
 from fastapi.testclient import TestClient
 from app.main import app
 
+
 class TestMainAPI(unittest.TestCase):
 
     def setUp(self):
@@ -40,6 +41,7 @@ class TestMainAPI(unittest.TestCase):
     def test_nonexistent_endpoint(self):
         response = self.client.get("/nonexistent")
         self.assertEqual(response.status_code, 404)
+
 
 if __name__ == '__main__':
     unittest.main()
