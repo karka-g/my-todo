@@ -1,0 +1,29 @@
+name: CI - Check Frontend Code
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    name: Check TypeScript
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: 🔍 TypeScript check
+        run: npx tsc --noEmit
+
+      - name: 📱 Build check
+        run: npx expo export --non-interactive
