@@ -1,52 +1,83 @@
 // app/services/types.ts
 
-// ===== AUTH =====
+// ===== AUTH & USERS =====
 export interface LoginResponse {
   access_token: string;
   token_type: string;
 }
 
-export interface User {
+export interface CreateUser {
+  username: string;
+}
+
+export interface DeleteUser {
+  id: number;
+}
+
+export interface GetUserInfo {
   id: number;
   username: string;
-  created_at: string;
+  points: number;
+}
+
+export interface UpdateUsername {
+  new_username: string;
 }
 
 // ===== TASKS =====
-export interface Task {
+export interface TaskCreate {
+  title: string;
+  description?: string;
+  priority: number;
+  deadline: string;  // ISO datetime string
+}
+
+export interface DeleteTask {
+  id: number;
+}
+
+export interface GetTaskInfo {
   id: number;
   title: string;
   description?: string;
-  priority: number;        // 1=низкий, 2=средний, 3=высокий
-  deadline: string;        // ISO формат "2024-12-31T23:59:59"
+  priority: number;
+  deadline: string;
   is_completed: boolean;
   created_at: string;
-  completed_at?: string;
-  user_id: number;
 }
 
-export interface CreateTaskDTO {
-  title: string;
-  description?: string;
-  priority?: number;
-  deadline?: string;
-}
-
-export interface UpdateTaskDTO {
-  title?: string;
-  description?: string;
-  priority?: number;
-  deadline?: string;
+export interface TaskUpdate {
+  new_title?: string;
+  new_description?: string;
+  new_priority?: number;
+  new_deadline?: string;  // ISO datetime string
   is_completed?: boolean;
 }
 
 // ===== ATTACHMENTS =====
-export interface Attachment {
-  id: number;
+export interface AttachmentBase {
   filename: string;
-  file_path: string;
   file_size: number;
-  mime_type: string;
+  file_type: string;
+}
+
+export interface AttachmentCreate extends AttachmentBase {
   task_id: number;
+}
+
+export interface AttachmentResponse extends AttachmentBase {
+  id: number;
+  file_path: string;
   uploaded_at: string;
+  task_id: number;
+}
+
+// ===== RESPONSES =====
+export interface Message {
+  message: string;
+}
+
+export interface ArchiveResponse {
+  message: string;
+  deleted_count: number;
 }

@@ -13,13 +13,13 @@ import {
   View
 } from 'react-native';
 import { archiveTasks, getTasks } from './services/api';
-import { Task } from './services/types';
+import { GetTaskInfo } from './services/types'; // ← ИСПРАВЛЕНО (было Task)
 
 const { width } = Dimensions.get('window');
 
 export default function ArchiveScreen() {
   const router = useRouter();
-  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<GetTaskInfo[]>([]);  // ← ИСПРАВЛЕНО
   const [loading, setLoading] = useState(true);
   const [archiving, setArchiving] = useState(false);
 
@@ -27,10 +27,10 @@ export default function ArchiveScreen() {
   const loadCompletedTasks = async () => {
     setLoading(true);
     try {
-      const response = await getTasks();  // AxiosResponse
-      const allTasks = response.data;     // Task[]
+      const response = await getTasks();
+      const allTasks = response.data;
       // Фильтруем выполненные задачи
-      const completed = allTasks.filter((task: Task) => task.is_completed === true);
+      const completed = allTasks.filter((task: GetTaskInfo) => task.is_completed === true);  // ← ИСПРАВЛЕНО
       setCompletedTasks(completed);
     } catch (error: any) {
       console.error('Load completed tasks error:', error);
@@ -45,14 +45,12 @@ export default function ArchiveScreen() {
     }
   };
 
-  // Обновляем при каждом открытии экрана
   useFocusEffect(
     useCallback(() => {
       loadCompletedTasks();
     }, [])
   );
 
-  // Архивация (удаление всех выполненных задач)
   const handleArchiveAll = async () => {
     if (completedTasks.length === 0) {
       Alert.alert('Архив пуст', 'Нет выполненных задач для архивации');
@@ -75,7 +73,7 @@ export default function ArchiveScreen() {
                 'Успех', 
                 `Удалено ${result.data.deleted_count} задач`
               );
-              await loadCompletedTasks(); // Обновляем список
+              await loadCompletedTasks();
             } catch (error: any) {
               console.error('Archive error:', error);
               Alert.alert('Ошибка', 'Не удалось архивировать задачи');
@@ -88,8 +86,7 @@ export default function ArchiveScreen() {
     );
   };
 
-  // Получаем баллы за задачу
-  const getTaskPoints = (task: Task) => {
+  const getTaskPoints = (task: GetTaskInfo) => {  // ← ИСПРАВЛЕНО
     switch (task.priority) {
       case 3: return 15;
       case 2: return 10;
@@ -142,14 +139,15 @@ export default function ArchiveScreen() {
               <TouchableOpacity
                 key={task.id}
                 style={styles.taskCard}
-onPress={() => router.push({ pathname: '/task', params: { id: task.id } })}              >
+                onPress={() => router.push({ pathname: '/task', params: { id: task.id } })}
+              >
                 <View style={styles.pointsBadge}>
                   <Text style={styles.pointsBadgeText}>{getTaskPoints(task)}</Text>
                 </View>
                 <View style={styles.taskInfo}>
                   <Text style={styles.taskTitle}>{task.title}</Text>
                   <Text style={styles.taskSubtitle}>
-                    Завершена: {task.completed_at ? formatDate(task.completed_at) : formatDate(task.created_at)}
+                    Завершена: {formatDate(task.created_at)}
                   </Text>
                 </View>
                 <View style={styles.checkCircleDone}>

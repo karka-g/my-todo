@@ -14,11 +14,10 @@ import {
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { completeTask, getMe, getTasks } from './services/api';
-import { Task, User } from './services/types';
+import { GetTaskInfo, GetUserInfo } from './services/types'; // ← ИСПРАВЛЕНО
 
 const { width } = Dimensions.get('window');
 
-// Функция для форматирования даты
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('ru-RU', {
@@ -28,7 +27,6 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Получение баллов за задачу
 const getTaskPoints = (priority: number) => {
   switch (priority) {
     case 3: return 15;
@@ -38,7 +36,6 @@ const getTaskPoints = (priority: number) => {
   }
 };
 
-// Цвет бейджа в зависимости от баллов
 const getPointsColor = (points: number) => {
   if (points >= 15) return '#DC5E60';
   if (points >= 10) return '#F0C846';
@@ -47,12 +44,11 @@ const getPointsColor = (points: number) => {
 
 export default function MainScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [tasks, setTasks] = useState<GetTaskInfo[]>([]);  // ← ИСПРАВЛЕНО
+  const [user, setUser] = useState<GetUserInfo | null>(null);  // ← ИСПРАВЛЕНО
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState<number | null>(null);
 
-  // Загрузка пользователя
   const loadUser = async () => {
     try {
       const response = await getMe();
@@ -65,7 +61,6 @@ export default function MainScreen() {
     }
   };
 
-  // Загрузка задач
   const loadTasks = async () => {
     setLoading(true);
     try {
@@ -82,7 +77,6 @@ export default function MainScreen() {
     }
   };
 
-  // Обновляем при каждом открытии экрана
   useFocusEffect(
     useCallback(() => {
       loadUser();
@@ -90,14 +84,12 @@ export default function MainScreen() {
     }, [])
   );
 
-  // Переключение статуса задачи (выполнить/отменить)
-  const handleToggleTask = async (task: Task) => {
+  const handleToggleTask = async (task: GetTaskInfo) => {  // ← ИСПРАВЛЕНО
     if (!task.is_completed) {
-      // Выполняем задачу
       setCompletingId(task.id);
       try {
         await completeTask(task.id);
-        await loadTasks(); // обновляем список
+        await loadTasks();
       } catch (error: any) {
         console.error('Complete task error:', error);
         Alert.alert('Ошибка', 'Не удалось выполнить задачу');
@@ -105,32 +97,28 @@ export default function MainScreen() {
         setCompletingId(null);
       }
     } else {
-      // Отменить выполнение? (если нужно - добавьте API эндпоинт)
       Alert.alert('Инфо', 'Задача уже выполнена');
     }
   };
 
-  // Группировка задач по датам
-  const groupedTasks = tasks.reduce((groups: Record<string, Task[]>, task) => {
+  const groupedTasks = tasks.reduce((groups: Record<string, GetTaskInfo[]>, task) => {
     const date = formatDate(task.deadline);
     if (!groups[date]) groups[date] = [];
     groups[date].push(task);
     return groups;
   }, {});
 
-  // Сортировка дат (от ближайшей к дальней)
   const sortedDates = Object.keys(groupedTasks).sort((a, b) => {
     const dateA = new Date(a.split('.').reverse().join('-'));
     const dateB = new Date(b.split('.').reverse().join('-'));
     return dateA.getTime() - dateB.getTime();
   });
 
-  // Подсчет баллов
   const totalPoints = tasks
     .filter(t => t.is_completed)
     .reduce((sum, t) => sum + getTaskPoints(t.priority), 0);
   
-  const maxPoints = 100; // Максимум баллов для прогресс-бара
+  const maxPoints = 100;
   const radius = 30;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(totalPoints, maxPoints) / maxPoints;
@@ -149,7 +137,6 @@ export default function MainScreen() {
       <SafeAreaView style={styles.content}>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingBottom: 120 }}>
 
-          {/* Шапка */}
           <View style={styles.header}>
             <View style={styles.avatarCircle}>
               <Ionicons name="person-outline" size={24} color="#fff" />
@@ -160,7 +147,6 @@ export default function MainScreen() {
             </View>
           </View>
 
-          {/* Карточка баллов */}
           <View style={styles.pointsCard}>
             <Text style={styles.pointsLabel}>Ваши баллы</Text>
             <View style={styles.progressContainer}>
@@ -187,7 +173,6 @@ export default function MainScreen() {
             </View>
           </View>
 
-          {/* Список задач по датам */}
           {sortedDates.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="checkbox-outline" size={80} color="#C4A1B0" />
@@ -245,7 +230,6 @@ export default function MainScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Навигация */}
       <View style={styles.bottomNavContainer}>
         <View style={styles.navBar}>
           <TouchableOpacity style={styles.navItem} onPress={() => router.push('/archive')}>

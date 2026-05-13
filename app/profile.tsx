@@ -15,13 +15,13 @@ import {
   View
 } from 'react-native';
 import { deleteUser, getMe, getTasks, updateUsername } from './services/api';
-import { Task, User } from './services/types';
+import { GetTaskInfo, GetUserInfo } from './services/types'; // ← ИСПРАВЛЕНО
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<GetUserInfo | null>(null);  // ← ИСПРАВЛЕНО
   const [totalPoints, setTotalPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -40,7 +40,7 @@ export default function ProfileScreen() {
       
       // Загружаем задачи для подсчета баллов
       const tasksResponse = await getTasks();
-      const tasks: Task[] = tasksResponse.data;
+      const tasks: GetTaskInfo[] = tasksResponse.data;  // ← ИСПРАВЛЕНО
       
       // Подсчет баллов (только выполненные задачи)
       const points = tasks
@@ -362,7 +362,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   navItem: { padding: 10 },
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

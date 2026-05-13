@@ -13,7 +13,7 @@ import {
     View
 } from 'react-native';
 import { completeTask, deleteTask, getTasks } from './services/api';
-import { Task } from './services/types';
+import { GetTaskInfo } from './services/types'; // ← ИСПРАВЛЕНО (было Task)
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +22,7 @@ export default function TaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const taskId = parseInt(id);
   
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<GetTaskInfo | null>(null);  // ← ИСПРАВЛЕНО
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -31,7 +31,7 @@ export default function TaskScreen() {
     setLoading(true);
     try {
       const response = await getTasks();
-      const foundTask = response.data.find((t: Task) => t.id === taskId);
+      const foundTask = response.data.find((t: GetTaskInfo) => t.id === taskId);  // ← ИСПРАВЛЕНО
       if (foundTask) {
         setTask(foundTask);
       } else {
@@ -174,12 +174,13 @@ export default function TaskScreen() {
               <Text style={styles.dateText}>{formatDate(task.created_at)}</Text>
             </View>
 
-            {task.completed_at && (
+            {/* ВАЖНО: В GetTaskInfo нет поля completed_at, убираем этот блок */}
+            {/* {task.completed_at && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Выполнена</Text>
                 <Text style={styles.dateText}>{formatDate(task.completed_at)}</Text>
               </View>
-            )}
+            )} */}
 
             <View style={styles.statusContainer}>
               <Text style={styles.statusLabel}>Статус:</Text>

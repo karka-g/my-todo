@@ -17,27 +17,16 @@ import {
   View
 } from 'react-native';
 import { createTask } from './services/api';
-import { CreateTaskDTO } from './services/types';
+import { TaskCreate } from './services/types';
 
 const { width } = Dimensions.get('window');
 
-// Маппинг важности в priority (число для бэкенда)
 const getPriorityFromImportance = (importance: string): number => {
   switch (importance) {
     case 'Очень важно': return 3;
     case 'Важно': return 2;
     case 'Не очень важно': return 1;
     default: return 2;
-  }
-};
-
-// Обратный маппинг
-const getImportanceFromPriority = (priority: number): string => {
-  switch (priority) {
-    case 3: return 'Очень важно';
-    case 2: return 'Важно';
-    case 1: return 'Не очень важно';
-    default: return 'Важно';
   }
 };
 
@@ -92,7 +81,6 @@ export default function AddTaskScreen() {
   };
 
   const handleCreateTask = async () => {
-    // Валидация
     if (!title.trim()) {
       Alert.alert('Ошибка', 'Введите название задачи');
       return;
@@ -101,11 +89,11 @@ export default function AddTaskScreen() {
     setLoading(true);
 
     try {
-      const taskData: CreateTaskDTO = {
+      const taskData: TaskCreate = {
         title: title.trim(),
         description: description.trim() || undefined,
         priority: getPriorityFromImportance(importance),
-        deadline: date.toISOString(), // Формат ISO для бэкенда
+        deadline: date.toISOString(),
       };
 
       await createTask(taskData);
