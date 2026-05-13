@@ -86,8 +86,8 @@ def get_tasks(user_id: int, session, include_archived: bool = False) -> list[Tas
 
     if not include_archived:
         query = query.filter(
-            Task.is_completed == False,
-            Task.is_archived == False
+            Task.is_completed.is_(False),
+            Task.is_archived.is_(False)
         )
     query = query.order_by(Task.priority.desc(), Task.deadline.asc())
 
@@ -101,7 +101,7 @@ def get_active_tasks(user_id: int, session) -> list[Task]:
 def get_archived_tasks(user_id: int, session) -> list[Task]:
     return session.query(Task).filter(
         Task.user_id == user_id,
-        Task.is_archived == True
+        Task.is_archived.is_(True)
     ).order_by(Task.completed_at.desc()).all()
 
 
@@ -163,8 +163,8 @@ def delete_task(task_id: int, session) -> Task | None:
 def archive_completed_tasks(db: Session, user_id: int):
     tasks = db.query(Task).filter(
         Task.user_id == user_id,
-        Task.is_completed == True,
-        Task.is_archived == False
+        Task.is_completed.is_(True),
+        Task.is_archived.is_(False)
     ).all()
 
     for task in tasks:

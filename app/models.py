@@ -43,8 +43,18 @@ class Task(Base):
 
     user = relationship("User", back_populates="tasks")
 
-    def __repr__(self) -> str:
-        return f"Task(id={self.id}, title={self.title}, description={self.description}, priority={self.priority}, deadline={self.deadline}, is completed={self.is_completed}, is archived={self.is_archived}, created at={self.created_at}, user_id={self.user_id})"
+    def __repr__(self):
+        return (
+            f"Task(id={self.id}, "
+            f"title={self.title!r}, "
+            f"description={self.description!r}, "
+            f"priority={self.priority}, "
+            f"deadline={self.deadline}, "
+            f"is completed={self.is_completed}, "
+            f"is archived={self.is_archived}, "
+            f"created at={self.created_at}, "
+            f"user_id={self.user_id})"
+        )
 
 
 class Attachment(Base):
@@ -58,5 +68,13 @@ class Attachment(Base):
     task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), nullable=False)
     task = relationship("Task", back_populates="attachments")
 
-    def __repr__(self) -> str:
-        return f"Attachment(id={self.id}, filename={self.filename}, file path={self.file_path}, file size={self.file_size}, file type={self.file_type}, uploaded at={self.uploaded_at}, task_id={self.task_id})"
+    def __repr__(self):
+        return (
+            f"Attachment(id={self.id}, "
+            f"filename={self.filename!r}, "
+            f"file path={self.file_path!r}, "
+            f"file size={self.file_size}, "
+            f"file type={self.file_type!r}, "
+            f"uploade at={self.uploaded_at}, "
+            f"task_id={self.task_id})"
+        )
