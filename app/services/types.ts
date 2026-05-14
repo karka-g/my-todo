@@ -1,6 +1,3 @@
-// app/services/types.ts
-
-// ===== AUTH & USERS =====
 export interface LoginResponse {
   access_token: string;
   token_type: string;
@@ -24,12 +21,11 @@ export interface UpdateUsername {
   new_username: string;
 }
 
-// ===== TASKS =====
 export interface TaskCreate {
   title: string;
   description?: string;
   priority: number;
-  deadline: string;  // ISO datetime string
+  deadline: string;
 }
 
 export interface DeleteTask {
@@ -44,18 +40,17 @@ export interface GetTaskInfo {
   deadline: string;
   is_completed: boolean;
   created_at: string;
-  completed_at?: string | null;  // ← добавить эту строку
+  completed_at?: string | null;
 }
 
 export interface TaskUpdate {
   new_title?: string;
   new_description?: string;
   new_priority?: number;
-  new_deadline?: string;  // ISO datetime string
+  new_deadline?: string;
   is_completed?: boolean;
 }
 
-// ===== ATTACHMENTS =====
 export interface AttachmentBase {
   filename: string;
   file_size: number;
@@ -73,7 +68,6 @@ export interface AttachmentResponse extends AttachmentBase {
   task_id: number;
 }
 
-// ===== RESPONSES =====
 export interface Message {
   message: string;
 }

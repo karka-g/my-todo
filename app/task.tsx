@@ -13,7 +13,7 @@ import {
     View
 } from 'react-native';
 import { completeTask, deleteTask, getTasks } from './services/api';
-import { GetTaskInfo } from './services/types'; // ← ИСПРАВЛЕНО (было Task)
+import { GetTaskInfo } from './services/types';
 
 const { width } = Dimensions.get('window');
 
@@ -22,7 +22,7 @@ export default function TaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const taskId = parseInt(id);
   
-  const [task, setTask] = useState<GetTaskInfo | null>(null);  // ← ИСПРАВЛЕНО
+  const [task, setTask] = useState<GetTaskInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
@@ -31,7 +31,7 @@ export default function TaskScreen() {
     setLoading(true);
     try {
       const response = await getTasks();
-      const foundTask = response.data.find((t: GetTaskInfo) => t.id === taskId);  // ← ИСПРАВЛЕНО
+      const foundTask = response.data.find((t: GetTaskInfo) => t.id === taskId);
       if (foundTask) {
         setTask(foundTask);
       } else {

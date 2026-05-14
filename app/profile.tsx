@@ -38,21 +38,9 @@ export default function ProfileScreen() {
       setUser(userResponse.data);
       setNewUsername(userResponse.data.username);
       
-      // Загружаем задачи для подсчета баллов
       const tasksResponse = await getTasks();
-      const tasks: GetTaskInfo[] = tasksResponse.data;  // ← ИСПРАВЛЕНО
+      const tasks: GetTaskInfo[] = tasksResponse.data;
       
-      // Подсчет баллов (только выполненные задачи)
-      // const points = tasks
-      //   .filter(task => task.is_completed)
-      //   .reduce((sum, task) => {
-      //     // Приоритет: 3=15, 2=10, 1=5 баллов
-      //     const taskPoints = task.priority === 3 ? 15 : task.priority === 2 ? 10 : 5;
-      //     return sum + taskPoints;
-      //   }, 0);
-      
-      // setTotalPoints(points);
-      // ✅ ДОБАВЬ ЭТО (после setUser)
       setTotalPoints(userResponse.data.points || 0);
     } catch (error: any) {
       console.error('Load profile error:', error);

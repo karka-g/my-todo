@@ -44,8 +44,8 @@ const getPointsColor = (points: number) => {
 
 export default function MainScreen() {
   const router = useRouter();
-  const [tasks, setTasks] = useState<GetTaskInfo[]>([]);  // ← ИСПРАВЛЕНО
-  const [user, setUser] = useState<GetUserInfo | null>(null);  // ← ИСПРАВЛЕНО
+  const [tasks, setTasks] = useState<GetTaskInfo[]>([]);
+  const [user, setUser] = useState<GetUserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState<number | null>(null);
 
@@ -84,7 +84,7 @@ export default function MainScreen() {
     }, [])
   );
 
-  const handleToggleTask = async (task: GetTaskInfo) => {  // ← ИСПРАВЛЕНО
+  const handleToggleTask = async (task: GetTaskInfo) => {
     if (!task.is_completed) {
       setCompletingId(task.id);
       try {
@@ -115,12 +115,7 @@ export default function MainScreen() {
     return dateA.getTime() - dateB.getTime();
   });
 
-  // const totalPoints = tasks
-  //   .filter(t => t.is_completed)
-  //   .reduce((sum, t) => sum + getTaskPoints(t.priority), 0);
   const totalPoints = user?.points || 0;
-
-  
   const maxPoints = 100;
   const radius = 30;
   const circumference = 2 * Math.PI * radius;

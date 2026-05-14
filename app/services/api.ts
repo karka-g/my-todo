@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import {
-  ArchiveResponse, // ← было User
-  AttachmentResponse, // ← было UpdateTaskDTO
+  ArchiveResponse,
+  AttachmentResponse,
   GetTaskInfo,
-  GetUserInfo, // ← было Task
+  GetUserInfo,
   LoginResponse,
-  TaskCreate, // ← было CreateTaskDTO
+  TaskCreate,
   TaskUpdate
 } from './types';
 
@@ -20,17 +20,15 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Добавляем токен к каждому запросу
 api.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem('access_token');
-  console.log('Токен в запросе:', token); // ← добавить эту строку
+  console.log('Токен в запросе:', token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// ============= AUTH =============
 export const register = (username: string) => 
   api.post<LoginResponse>('/auth/register', { username });
 
@@ -40,36 +38,33 @@ export const login = (username: string) =>
 export const checkUsername = (username: string) => 
   api.get<{ exists: boolean }>(`/auth/check/${username}`);
 
-// ============= TASKS =============
 export const getTasks = () => 
-  api.get<GetTaskInfo[]>('/tasks');  // ← исправлено
+  api.get<GetTaskInfo[]>('/tasks');
 
-export const createTask = (data: TaskCreate) =>   // ← исправлено
-  api.post<GetTaskInfo>('/tasks', data);          // ← исправлено
+export const createTask = (data: TaskCreate) =>
+  api.post<GetTaskInfo>('/tasks', data);
 
-export const updateTask = (id: number, data: TaskUpdate) =>   // ← исправлено
-  api.put<GetTaskInfo>(`/tasks/${id}`, data);                 // ← исправлено
+export const updateTask = (id: number, data: TaskUpdate) =>   
+  api.put<GetTaskInfo>(`/tasks/${id}`, data);
 
 export const deleteTask = (id: number) => 
   api.delete<{ message: string }>(`/tasks/${id}`);
 
 export const completeTask = (id: number) => 
-  api.post<GetTaskInfo>(`/tasks/${id}/complete`);  // ← исправлено
+  api.post<GetTaskInfo>(`/tasks/${id}/complete`);
 
 export const archiveTasks = () => 
-  api.post<ArchiveResponse>('/tasks/archive');  // ← исправлено
+  api.post<ArchiveResponse>('/tasks/archive');
 
-// ============= USERS =============
 export const getMe = () => 
-  api.get<GetUserInfo>('/users/me');  // ← исправлено
+  api.get<GetUserInfo>('/users/me');
 
 export const updateUsername = (userId: number, newUsername: string) => 
-  api.put<GetUserInfo>(`/users/${userId}/username`, { new_username: newUsername });  // ← исправлено
+  api.put<GetUserInfo>(`/users/${userId}/username`, { new_username: newUsername });
 
 export const deleteUser = (userId: number) => 
   api.delete<{ message: string }>(`/users/${userId}`);
 
-// ============= ATTACHMENTS =============
 export const uploadAttachment = (taskId: number, file: any) => {
   const formData = new FormData();
   formData.append('file', file);
