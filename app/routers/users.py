@@ -9,27 +9,11 @@ from app.models import User
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-# @router.get("/me", response_model=schemas.GetUserInfo)
-# async def get_current_user_info(
-#         token_data: dict = Depends(get_current_user),
-#         db: Session = Depends(get_db)
-# ):
-#     user_id = token_data.get("user_id")
-#     user = crud.get_user_by_id(user_id, db)
-#     if not user:
-#         raise HTTPException(status_code=404, detail="Пользователь не найден")
-#     return {
-#         "id": user.id,
-#         "username": user.name,
-#         "points": user.points
-#     }
-
 @router.get("/me", response_model=schemas.GetUserInfo)
 async def get_current_user_info(
-    current_user: User = Depends(get_current_user),  # ← так
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # current_user уже объект User, не нужно ничего искать
     return {
         "id": current_user.id,
         "username": current_user.name,

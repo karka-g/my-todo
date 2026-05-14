@@ -10,6 +10,7 @@ from app.models import User
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
+
 @router.get("/archive", response_model=list[schemas.TaskResponse])
 def get_archived_tasks(
     user_id: int,
@@ -19,6 +20,7 @@ def get_archived_tasks(
     """Получить архивные задачи пользователя"""
     tasks = crud.get_tasks(user_id, db, include_archived=True)
     return tasks
+
 
 @router.post("/", response_model=schemas.GetTaskInfo)
 async def create_task(

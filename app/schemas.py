@@ -79,6 +79,7 @@ class AttachmentResponse(AttachmentBase):
     class Config:
         from_attributes = True
 
+
 class TaskResponse(BaseModel):
     id: int
     title: str
